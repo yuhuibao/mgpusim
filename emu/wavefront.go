@@ -2,6 +2,7 @@ package emu
 
 import (
 	"log"
+	"math"
 
 	"github.com/sarchlab/akita/v3/mem/vm"
 	"github.com/sarchlab/mgpusim/v3/insts"
@@ -72,14 +73,42 @@ func (wf *Wavefront) VRegValue(lane int, i int) uint32 {
 
 // ReadOperand returns the operand value as uint64
 // use slice buf to handle the case when operand is vgpr in inst X4, X8, X16
-func (wf *Wavefront) readOperand(operand *insts.Operand, laneID int, buf []uint32) uint64 {
+func (wf *Wavefront) ReadOperand(operand *insts.Operand, laneID int, buf []uint32) uint64 {
+	var value uint64
 	switch operand.OperandType {
 	case insts.RegOperand:
-
+		if operand.RegCount <= 2 {
+			value = wf.ReadReg(operand.Register, operand.RegCount, laneID)
+		} else {
+			wf.ReadRegMore(operand.Register, operand.RegCount, laneID, buf)
+			value = uint64(operand.RegCount)
+		}
+	case insts.IntOperand:
+		value = uint64(operand.IntValue)
+	case insts.FloatOperand:
+		value = uint64(math.Float32bits(float32(operand.FloatValue)))
+	case insts.LiteralConstant:
+		value = uint64(operand.LiteralConstant)
+	default:
+		log.Panicf("Operand %s is not supported", operand.String())
 	}
+	return value
 }
 
-// ReadReg returns the raw register value
+// WriteOperand write the operand value either in data of uint64
+// or in buf of slice of uint32 to handle the case when operand is vgpr in inst X4, X8, X16
+func (wf *Wavefront) WriteOperand(operand *insts.Operand, laneID int, data uint64, buf []uint32) {
+	if operand.OperandType != insts.RegOperand {
+		log.Panic("Can only write into reg operand")
+	}
+
+	if operand.RegCount <= 2 {
+		wf.WriteReg(operand.Register, operand.RegCount, laneID, data)
+	}
+
+}
+
+// ReadReg returns the raw register value when regCount<=2
 //
 //nolint:gocyclo
 func (wf *Wavefront) ReadReg(reg *insts.Reg, regCount int, laneID int) uint64 {
@@ -164,6 +193,31 @@ func (wf *Wavefront) WriteReg(
 		wf.Exec = data
 	} else if reg.RegType == insts.M0 {
 		wf.M0 = uint32(data)
+	} else {
+		log.Panicf("Register type %s not supported", reg.Name)
+	}
+}
+
+// ReadRegMore return the raw register value when regCount > 2
+func (wf *Wavefront) ReadRegMore(reg *insts.Reg, regCount int, laneID int, buf []uint32) {
+	if reg.IsSReg() {
+		copy(buf, wf.SRegFile[reg.RegIndex():reg.RegIndex()+regCount])
+	} else if reg.IsVReg() {
+		copy(buf, wf.VRegFile[laneID][reg.RegIndex():reg.RegIndex()+regCount])
+	} else {
+		log.Panicf("Register type %s not supported", reg.Name)
+	}
+}
+
+// WriteRegMore write the raw register value when regCount > 2
+func (wf *Wavefront) WriteRegMore(reg *insts.Reg,
+	regCount int,
+	laneID int,
+	buf []uint32) {
+	if reg.IsSReg() {
+		copy(wf.SRegFile[reg.RegIndex():reg.RegIndex()+regCount], buf)
+	} else if reg.IsVReg() {
+		copy(wf.VRegFile[laneID][reg.RegIndex():reg.RegIndex()+regCount], buf)
 	} else {
 		log.Panicf("Register type %s not supported", reg.Name)
 	}
