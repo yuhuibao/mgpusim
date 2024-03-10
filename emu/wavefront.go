@@ -51,11 +51,6 @@ func (wf *Wavefront) Inst() *insts.Inst {
 	return wf.inst
 }
 
-// Scratchpad returns the scratchpad that is associated with the wavefront
-func (wf *Wavefront) Scratchpad() Scratchpad {
-	return wf.scratchpad
-}
-
 // PID returns pid
 func (wf *Wavefront) PID() vm.PID {
 	return wf.pid
@@ -155,12 +150,7 @@ func (wf *Wavefront) ReadReg(reg *insts.Reg, regCount int, laneID int) uint64 {
 // WriteReg returns the raw register value
 //
 //nolint:gocyclo
-func (wf *Wavefront) WriteReg(
-	reg *insts.Reg,
-	regCount int,
-	laneID int,
-	data uint64,
-) {
+func (wf *Wavefront) WriteReg(reg *insts.Reg, regCount int, laneID int, data uint64) {
 	if reg.IsSReg() {
 		if regCount == 1 {
 			wf.SRegFile[reg.RegIndex()] = uint32(data)
@@ -210,10 +200,7 @@ func (wf *Wavefront) ReadRegMore(reg *insts.Reg, regCount int, laneID int, buf [
 }
 
 // WriteRegMore write the raw register value when regCount > 2
-func (wf *Wavefront) WriteRegMore(reg *insts.Reg,
-	regCount int,
-	laneID int,
-	buf []uint32) {
+func (wf *Wavefront) WriteRegMore(reg *insts.Reg, regCount int, laneID int, buf []uint32) {
 	if reg.IsSReg() {
 		copy(wf.SRegFile[reg.RegIndex():reg.RegIndex()+regCount], buf)
 	} else if reg.IsVReg() {

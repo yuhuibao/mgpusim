@@ -7,8 +7,22 @@ import (
 
 	"encoding/binary"
 
+	"github.com/sarchlab/akita/v3/mem/vm"
 	"github.com/sarchlab/mgpusim/v3/insts"
 )
+
+// InstEmuState is the interface used by the emulator to track the instruction
+// execution status.
+type InstEmuState interface {
+	PID() vm.PID
+	Inst() *insts.Inst
+	ReadOperand(operand *insts.Operand, laneID int, buf []uint32) uint64
+	WriteOperand(operand *insts.Operand, laneID int, data uint64, buf []uint32)
+	ReadReg(reg *insts.Reg, regCount int, laneID int) uint64
+	WriteReg(reg *insts.Reg, regCount int, laneID int, data uint64)
+	ReadRegMore(reg *insts.Reg, regCount int, laneID int, buf []uint32)
+	WriteRegMore(reg *insts.Reg, regCount int, laneID int, buf []uint32)
+}
 
 // ALU does its jobs
 type ALU interface {
