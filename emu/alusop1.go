@@ -44,8 +44,8 @@ func (u *ALUImpl) runSOP1(state InstEmuState) {
 func (u *ALUImpl) runSMOVB32(state InstEmuState) {
 	inst := state.Inst()
 
-	src0 := state.ReadOperand(inst.Src0, 0, nil)
-	state.WriteOperand(inst.Dst, 0, src0, nil)
+	src0 := u.ReadOperand(state, inst.Src0, 0, nil)
+	u.WriteOperand(state, inst.Dst, 0, src0, nil)
 }
 
 func (u *ALUImpl) runSMOVB64(state InstEmuState) {

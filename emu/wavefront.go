@@ -2,7 +2,6 @@ package emu
 
 import (
 	"log"
-	"math"
 
 	"github.com/sarchlab/akita/v3/mem/vm"
 	"github.com/sarchlab/mgpusim/v3/insts"
@@ -15,10 +14,9 @@ type Wavefront struct {
 
 	pid vm.PID
 
-	Completed  bool
-	AtBarrier  bool
-	inst       *insts.Inst
-	scratchpad Scratchpad
+	Completed bool
+	AtBarrier bool
+	inst      *insts.Inst
 
 	PC       uint64
 	Exec     uint64
@@ -41,8 +39,6 @@ func NewWavefront(nativeWf *kernels.Wavefront) *Wavefront {
 		wf.VRegFile[i] = make([]uint32, 256)
 	}
 
-	wf.scratchpad = make([]byte, 4096)
-
 	return wf
 }
 
@@ -64,43 +60,6 @@ func (wf *Wavefront) SRegValue(i int) uint32 {
 // VRegValue returns the value of v(i) of a certain lain
 func (wf *Wavefront) VRegValue(lane int, i int) uint32 {
 	return wf.VRegFile[lane][i]
-}
-
-// ReadOperand returns the operand value as uint64
-// use slice buf to handle the case when operand is vgpr in inst X4, X8, X16
-func (wf *Wavefront) ReadOperand(operand *insts.Operand, laneID int, buf []uint32) uint64 {
-	var value uint64
-	switch operand.OperandType {
-	case insts.RegOperand:
-		if operand.RegCount <= 2 {
-			value = wf.ReadReg(operand.Register, operand.RegCount, laneID)
-		} else {
-			wf.ReadRegMore(operand.Register, operand.RegCount, laneID, buf)
-			value = uint64(operand.RegCount)
-		}
-	case insts.IntOperand:
-		value = uint64(operand.IntValue)
-	case insts.FloatOperand:
-		value = uint64(math.Float32bits(float32(operand.FloatValue)))
-	case insts.LiteralConstant:
-		value = uint64(operand.LiteralConstant)
-	default:
-		log.Panicf("Operand %s is not supported", operand.String())
-	}
-	return value
-}
-
-// WriteOperand write the operand value either in data of uint64
-// or in buf of slice of uint32 to handle the case when operand is vgpr in inst X4, X8, X16
-func (wf *Wavefront) WriteOperand(operand *insts.Operand, laneID int, data uint64, buf []uint32) {
-	if operand.OperandType != insts.RegOperand {
-		log.Panic("Can only write into reg operand")
-	}
-
-	if operand.RegCount <= 2 {
-		wf.WriteReg(operand.Register, operand.RegCount, laneID, data)
-	}
-
 }
 
 // ReadReg returns the raw register value when regCount<=2
@@ -188,8 +147,8 @@ func (wf *Wavefront) WriteReg(reg *insts.Reg, regCount int, laneID int, data uin
 	}
 }
 
-// ReadRegMore return the raw register value when regCount > 2
-func (wf *Wavefront) ReadRegMore(reg *insts.Reg, regCount int, laneID int, buf []uint32) {
+// ReadReg4Plus return the raw register value when regCount > 2
+func (wf *Wavefront) ReadReg4Plus(reg *insts.Reg, regCount int, laneID int, buf []uint32) {
 	if reg.IsSReg() {
 		copy(buf, wf.SRegFile[reg.RegIndex():reg.RegIndex()+regCount])
 	} else if reg.IsVReg() {
@@ -199,8 +158,8 @@ func (wf *Wavefront) ReadRegMore(reg *insts.Reg, regCount int, laneID int, buf [
 	}
 }
 
-// WriteRegMore write the raw register value when regCount > 2
-func (wf *Wavefront) WriteRegMore(reg *insts.Reg, regCount int, laneID int, buf []uint32) {
+// WriteReg4Plus write the raw register value when regCount > 2
+func (wf *Wavefront) WriteReg4Plus(reg *insts.Reg, regCount int, laneID int, buf []uint32) {
 	if reg.IsSReg() {
 		copy(wf.SRegFile[reg.RegIndex():reg.RegIndex()+regCount], buf)
 	} else if reg.IsVReg() {
