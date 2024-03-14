@@ -1,27 +1,23 @@
 package emu
 
 import (
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	"github.com/sarchlab/mgpusim/v3/insts"
+	"github.com/sarchlab/mgpusim/v3/kernels"
 )
 
 var _ = Describe("ALU", func() {
 
 	var (
-		alu      *ALUImpl
-		mockCtrl *gomock.Controller
-		state    *MockInstEmuState
+		alu *ALUImpl
+		wf  *Wavefront
 	)
 
 	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-		state = NewMockInstEmuState(mockCtrl)
 		alu = NewALU(nil)
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
+		rawWf := kernels.NewWavefront()
+		wf = NewWavefront(rawWf)
 	})
 
 	It("should run s_mov_b32", func() {
@@ -30,11 +26,13 @@ var _ = Describe("ALU", func() {
 		inst.Opcode = 0
 		inst.Src0 = insts.NewSRegOperand(0, 0, 1)
 		inst.Dst = insts.NewSRegOperand(1, 1, 1)
-		state.EXPECT().Inst().Return(inst).Times(3)
+		wf.inst = inst
 
-		state.EXPECT().ReadOperand(inst.Src0, 0, nil).Return(uint64(0x0000ffffffff0000))
-		state.EXPECT().WriteOperand(inst.Dst, 0, uint64(0x0000ffffffff0000), nil)
-		alu.Run(state)
+		wf.WriteReg(insts.SReg(0), 1, 0, uint64(0xffff0000))
+		alu.Run(wf)
+		results := wf.ReadReg(insts.SReg(1), 1, 0)
+		Expect(results).To(Equal(uint64(0xffff0000)))
+
 	})
 
 	// It("should run s_mov_b64", func() {

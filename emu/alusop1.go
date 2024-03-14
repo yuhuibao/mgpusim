@@ -2,8 +2,6 @@ package emu
 
 import (
 	"log"
-
-	"github.com/sarchlab/mgpusim/v3/insts"
 )
 
 //nolint:gocyclo
@@ -12,10 +10,10 @@ func (u *ALUImpl) runSOP1(state InstEmuState) {
 	switch inst.Opcode {
 	case 0:
 		u.runSMOVB32(state)
-	case 1:
-		u.runSMOVB64(state)
-	case 4:
-		u.runSNOTU32(state)
+	// case 1:
+	// 	u.runSMOVB64(state)
+	// case 4:
+	// 	u.runSNOTU32(state)
 	// case 8:
 	// 	u.runSBREVB32(state)
 	// case 28:
@@ -48,20 +46,20 @@ func (u *ALUImpl) runSMOVB32(state InstEmuState) {
 	u.WriteOperand(state, inst.Dst, 0, src0, nil)
 }
 
-func (u *ALUImpl) runSMOVB64(state InstEmuState) {
-	inst := state.Inst()
-	src0 := state.ReadOperand(inst.Src0, 0, nil)
-	state.WriteOperand(inst.Dst, 0, src0, nil)
-}
+// func (u *ALUImpl) runSMOVB64(state InstEmuState) {
+// 	inst := state.Inst()
+// 	src0 := state.ReadOperand(inst.Src0, 0, nil)
+// 	state.WriteOperand(inst.Dst, 0, src0, nil)
+// }
 
-func (u *ALUImpl) runSNOTU32(state InstEmuState) {
-	inst := state.Inst()
-	src0 := state.ReadOperand(inst.Src0, 0, nil)
-	state.WriteOperand(inst.Dst, 0, ^src0, nil)
-	if ^src0 != 0 {
-		state.WriteReg(insts.Regs[insts.SCC], 1, 0, 1)
-	}
-}
+// func (u *ALUImpl) runSNOTU32(state InstEmuState) {
+// 	inst := state.Inst()
+// 	src0 := state.ReadOperand(inst.Src0, 0, nil)
+// 	state.WriteOperand(inst.Dst, 0, ^src0, nil)
+// 	if ^src0 != 0 {
+// 		state.WriteReg(insts.Regs[insts.SCC], 1, 0, 1)
+// 	}
+// }
 
 // func (u *ALUImpl) runSBREVB32(state InstEmuState) {
 // 	sp := state.Scratchpad().AsSOP1()
