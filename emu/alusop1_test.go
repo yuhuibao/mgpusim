@@ -35,31 +35,34 @@ var _ = Describe("ALU", func() {
 
 	})
 
-	// It("should run s_mov_b64", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOP1
-	// 	state.inst.Opcode = 1
+	It("should run s_mov_b64", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOP1
+		inst.Opcode = 1
+		inst.Src0 = insts.NewSRegOperand(2, 2, 2)
+		inst.Dst = insts.NewSRegOperand(3, 3, 2)
+		wf.inst = inst
 
-	// 	sp := state.Scratchpad().AsSOP1()
-	// 	sp.SRC0 = 0x0000ffffffff0000
+		wf.WriteReg(insts.SReg(2), 2, 0, 0x0000ffffffff0000)
+		alu.Run(wf)
+		results := wf.ReadReg(insts.SReg(3), 2, 0)
+		Expect(results).To(Equal(uint64(0x0000ffffffff0000)))
+	})
 
-	// 	alu.Run(state)
-	// 	Expect(sp.DST).To(Equal(uint64(0x0000ffffffff0000)))
-	// })
+	It("should run s_not_u32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOP1
+		inst.Opcode = 4
+		inst.Src0 = insts.NewSRegOperand(4, 4, 1)
+		inst.Dst = insts.NewSRegOperand(5, 5, 1)
+		wf.inst = inst
 
-	// It("should run s_not_u32", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOP1
-	// 	state.inst.Opcode = 4
-
-	// 	sp := state.Scratchpad().AsSOP1()
-	// 	sp.SRC0 = 0xff
-
-	// 	alu.Run(state)
-
-	// 	Expect(sp.DST).To(Equal(uint64(0xffffffffffffff00)))
-	// 	Expect(sp.SCC).To(Equal(uint8(0x1)))
-	// })
+		wf.WriteReg(insts.SReg(4), 1, 0, uint64(0xff))
+		alu.Run(wf)
+		results := wf.ReadReg(insts.SReg(5), 1, 0)
+		Expect(results).To(Equal(uint64(0xffffff00)))
+		Expect(wf.SCC).To(Equal(uint8(0x1)))
+	})
 
 	// It("should run s_brev_b32", func() {
 	// 	state.inst = insts.NewInst()
