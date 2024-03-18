@@ -64,159 +64,179 @@ var _ = Describe("ALU", func() {
 		Expect(wf.SCC).To(Equal(uint8(0x1)))
 	})
 
-	// It("should run s_brev_b32", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOP1
-	// 	state.inst.Opcode = 8
+	It("should run s_brev_b32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOP1
+		inst.Opcode = 8
 
-	// 	sp := state.Scratchpad().AsSOP1()
-	// 	sp.SRC0 = 0xffff
+		inst.Src0 = insts.NewSRegOperand(8, 8, 1)
+		inst.Dst = insts.NewSRegOperand(9, 9, 1)
+		wf.inst = inst
 
-	// 	alu.Run(state)
+		wf.WriteReg(insts.SReg(8), 1, 0, uint64(0xffff))
 
-	// 	Expect(sp.DST).To(Equal(uint64(0x00000000ffff0000)))
-	// })
+		alu.Run(wf)
+		results := wf.ReadReg(insts.SReg(9), 1, 0)
+		Expect(results).To(Equal(uint64(0x00000000ffff0000)))
+	})
 
-	// It("should run s_get_pc_b64", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOP1
-	// 	state.inst.Opcode = 28
+	It("should run s_get_pc_b64", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOP1
+		inst.Opcode = 28
 
-	// 	sp := state.Scratchpad().AsSOP1()
+		inst.Dst = insts.NewSRegOperand(1, 1, 2)
+		inst.PC = 0xffffffff00000000
+		wf.inst = inst
 
-	// 	sp.PC = 0xffffffff00000000
+		wf.WriteReg(insts.SReg(1), 2, 0, inst.PC)
+		alu.Run(wf)
+		results := wf.ReadReg(insts.SReg(1), 2, 0)
+		Expect(results).To(Equal(uint64(0xffffffff00000004)))
+	})
 
-	// 	alu.Run(state)
+	It("should run s_and_saveexec_b64", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOP1
+		inst.Opcode = 32
 
-	// 	Expect(sp.DST).To(Equal(uint64(0xffffffff00000004)))
-	// })
+		inst.Src0 = insts.NewSRegOperand(2, 2, 2)
+		inst.Dst = insts.NewSRegOperand(4, 4, 2)
+		wf.Exec = 0xffffffff00000000
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(2), 2, 0, 0x0000ffffffff0000)
 
-	// It("should run s_and_saveexec_b64", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOP1
-	// 	state.inst.Opcode = 32
+		alu.Run(wf)
+		results := wf.ReadReg(insts.SReg(4), 2, 0)
+		Expect(wf.Exec).To(Equal(uint64(0x0000ffff00000000)))
+		Expect(results).To(Equal(uint64(0xffffffff00000000)))
+		Expect(wf.SCC).To(Equal(uint8(0x1)))
+	})
 
-	// 	sp := state.Scratchpad().AsSOP1()
-	// 	sp.EXEC = 0xffffffff00000000
-	// 	sp.SRC0 = 0x0000ffffffff0000
+	It("should run s_or_saveexec_b64", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOP1
+		inst.Opcode = 33
 
-	// 	alu.Run(state)
+		inst.Src0 = insts.NewSRegOperand(2, 2, 2)
+		inst.Dst = insts.NewSRegOperand(4, 4, 2)
+		wf.Exec = 0xffffffff00000000
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(2), 2, 0, 0x0000ffffffff0000)
 
-	// 	Expect(sp.EXEC).To(Equal(uint64(0x0000ffff00000000)))
-	// 	Expect(sp.DST).To(Equal(uint64(0xffffffff00000000)))
-	// 	Expect(sp.SCC).To(Equal(byte(0x1)))
-	// })
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.SReg(4), 2, 0)
+		Expect(wf.Exec).To(Equal(uint64(0xffffffffffff0000)))
+		Expect(dst).To(Equal(uint64(0xffffffff00000000)))
+		Expect(wf.SCC).To(Equal(byte(0x1)))
+	})
 
-	// It("should run s_or_saveexec_b64", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOP1
-	// 	state.inst.Opcode = 33
+	It("should run s_xor_saveexec_b64", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOP1
+		inst.Opcode = 34
 
-	// 	sp := state.Scratchpad().AsSOP1()
-	// 	sp.EXEC = 0xffffffff00000000
-	// 	sp.SRC0 = 0x0000ffffffff0000
+		inst.Src0 = insts.NewSRegOperand(2, 2, 2)
+		inst.Dst = insts.NewSRegOperand(4, 4, 2)
+		wf.Exec = 0xffffffff00000000
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(2), 2, 0, 0x0000ffffffff0000)
 
-	// 	alu.Run(state)
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.SReg(4), 2, 0)
+		Expect(wf.Exec).To(Equal(uint64(0xffff0000ffff0000)))
+		Expect(dst).To(Equal(uint64(0xffffffff00000000)))
+		Expect(wf.SCC).To(Equal(byte(0x1)))
+	})
 
-	// 	Expect(sp.EXEC).To(Equal(uint64(0xffffffffffff0000)))
-	// 	Expect(sp.DST).To(Equal(uint64(0xffffffff00000000)))
-	// 	Expect(sp.SCC).To(Equal(byte(0x1)))
-	// })
+	It("should run s_andn2_saveexec_b64", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOP1
+		inst.Opcode = 35
 
-	// It("should run s_xor_saveexec_b64", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOP1
-	// 	state.inst.Opcode = 34
+		inst.Src0 = insts.NewSRegOperand(2, 2, 2)
+		inst.Dst = insts.NewSRegOperand(4, 4, 2)
+		wf.Exec = 0xffffffff00000000
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(2), 2, 0, 0x0000ffffffff0000)
 
-	// 	sp := state.Scratchpad().AsSOP1()
-	// 	sp.EXEC = 0xffffffff00000000
-	// 	sp.SRC0 = 0x0000ffffffff0000
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.SReg(4), 2, 0)
+		Expect(wf.Exec).To(Equal(uint64(0x00000000ffff0000)))
+		Expect(dst).To(Equal(uint64(0xffffffff00000000)))
+		Expect(wf.SCC).To(Equal(byte(0x1)))
+	})
 
-	// 	alu.Run(state)
+	It("should run s_orn2_saveexec_b64", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOP1
+		inst.Opcode = 36
 
-	// 	Expect(sp.EXEC).To(Equal(uint64(0xffff0000ffff0000)))
-	// 	Expect(sp.DST).To(Equal(uint64(0xffffffff00000000)))
-	// 	Expect(sp.SCC).To(Equal(byte(0x1)))
-	// })
+		inst.Src0 = insts.NewSRegOperand(2, 2, 2)
+		inst.Dst = insts.NewSRegOperand(4, 4, 2)
+		wf.Exec = 0xffffffff00000000
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(2), 2, 0, 0x0000ffffffff0000)
 
-	// It("should run s_andn2_saveexec_b64", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOP1
-	// 	state.inst.Opcode = 35
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.SReg(4), 2, 0)
+		Expect(wf.Exec).To(Equal(uint64(0x0000ffffffffffff)))
+		Expect(dst).To(Equal(uint64(0xffffffff00000000)))
+		Expect(wf.SCC).To(Equal(byte(0x1)))
+	})
 
-	// 	sp := state.Scratchpad().AsSOP1()
-	// 	sp.EXEC = 0xffffffff00000000
-	// 	sp.SRC0 = 0x0000ffffffff0000
+	It("should run s_nand_saveexec_b64", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOP1
+		inst.Opcode = 37
 
-	// 	alu.Run(state)
+		inst.Src0 = insts.NewSRegOperand(2, 2, 2)
+		inst.Dst = insts.NewSRegOperand(4, 4, 2)
+		wf.Exec = 0xffffffff00000000
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(2), 2, 0, 0x0000ffffffff0000)
 
-	// 	Expect(sp.EXEC).To(Equal(uint64(0x00000000ffff0000)))
-	// 	Expect(sp.DST).To(Equal(uint64(0xffffffff00000000)))
-	// 	Expect(sp.SCC).To(Equal(byte(0x1)))
-	// })
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.SReg(4), 2, 0)
+		Expect(wf.Exec).To(Equal(uint64(0xffff0000ffffffff)))
+		Expect(dst).To(Equal(uint64(0xffffffff00000000)))
+		Expect(wf.SCC).To(Equal(byte(0x1)))
+	})
 
-	// It("should run s_orn2_saveexec_b64", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOP1
-	// 	state.inst.Opcode = 36
+	It("should run s_nor_saveexec_b64", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOP1
+		inst.Opcode = 38
 
-	// 	sp := state.Scratchpad().AsSOP1()
-	// 	sp.EXEC = 0xffffffff00000000
-	// 	sp.SRC0 = 0x0000ffffffff0000
+		inst.Src0 = insts.NewSRegOperand(2, 2, 2)
+		inst.Dst = insts.NewSRegOperand(4, 4, 2)
+		wf.Exec = 0xffffffff00000000
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(2), 2, 0, 0x0000ffffffff0000)
 
-	// 	alu.Run(state)
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.SReg(4), 2, 0)
+		Expect(wf.Exec).To(Equal(uint64(0x000000000000ffff)))
+		Expect(dst).To(Equal(uint64(0xffffffff00000000)))
+		Expect(wf.SCC).To(Equal(byte(0x1)))
+	})
 
-	// 	Expect(sp.EXEC).To(Equal(uint64(0x0000ffffffffffff)))
-	// 	Expect(sp.DST).To(Equal(uint64(0xffffffff00000000)))
-	// 	Expect(sp.SCC).To(Equal(byte(0x1)))
-	// })
+	It("should run s_nxor_saveexec_b64", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOP1
+		inst.Opcode = 39
 
-	// It("should run s_nand_saveexec_b64", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOP1
-	// 	state.inst.Opcode = 37
+		inst.Src0 = insts.NewSRegOperand(2, 2, 2)
+		inst.Dst = insts.NewSRegOperand(4, 4, 2)
+		wf.Exec = 0xffffffff00000000
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(2), 2, 0, 0x0000ffffffff0000)
 
-	// 	sp := state.Scratchpad().AsSOP1()
-	// 	sp.EXEC = 0xffffffff00000000
-	// 	sp.SRC0 = 0x0000ffffffff0000
-
-	// 	alu.Run(state)
-
-	// 	Expect(sp.EXEC).To(Equal(uint64(0xffff0000ffffffff)))
-	// 	Expect(sp.DST).To(Equal(uint64(0xffffffff00000000)))
-	// 	Expect(sp.SCC).To(Equal(byte(0x1)))
-	// })
-
-	// It("should run s_nor_saveexec_b64", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOP1
-	// 	state.inst.Opcode = 38
-
-	// 	sp := state.Scratchpad().AsSOP1()
-	// 	sp.EXEC = 0xffffffff00000000
-	// 	sp.SRC0 = 0x0000ffffffff0000
-
-	// 	alu.Run(state)
-
-	// 	Expect(sp.EXEC).To(Equal(uint64(0x000000000000ffff)))
-	// 	Expect(sp.DST).To(Equal(uint64(0xffffffff00000000)))
-	// 	Expect(sp.SCC).To(Equal(byte(0x1)))
-	// })
-
-	// It("should run s_nxor_saveexec_b64", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOP1
-	// 	state.inst.Opcode = 39
-
-	// 	sp := state.Scratchpad().AsSOP1()
-	// 	sp.EXEC = 0xffffffff00000000
-	// 	sp.SRC0 = 0x0000ffffffff0000
-
-	// 	alu.Run(state)
-
-	// 	Expect(sp.EXEC).To(Equal(uint64(0x0000ffff0000ffff)))
-	// 	Expect(sp.DST).To(Equal(uint64(0xffffffff00000000)))
-	// 	Expect(sp.SCC).To(Equal(byte(0x1)))
-	// })
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.SReg(4), 2, 0)
+		Expect(wf.Exec).To(Equal(uint64(0x0000ffff0000ffff)))
+		Expect(dst).To(Equal(uint64(0xffffffff00000000)))
+		Expect(wf.SCC).To(Equal(byte(0x1)))
+	})
 
 })

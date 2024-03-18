@@ -16,26 +16,26 @@ func (u *ALUImpl) runSOP1(state InstEmuState) {
 		u.runSMOVB64(state)
 	case 4:
 		u.runSNOTU32(state)
-	// case 8:
-	// 	u.runSBREVB32(state)
-	// case 28:
-	// 	u.runSGETPCB64(state)
-	// case 32:
-	// 	u.runSANDSAVEEXECB64(state)
-	// case 33:
-	// 	u.runSORSAVEEXECB64(state)
-	// case 34:
-	// 	u.runSXORSAVEEXECB64(state)
-	// case 35:
-	// 	u.runSANDN2SAVEEXECB64(state)
-	// case 36:
-	// 	u.runSORN2SAVEEXECB64(state)
-	// case 37:
-	// 	u.runSNANDSAVEEXECB64(state)
-	// case 38:
-	// 	u.runSNORSAVEEXECB64(state)
-	// case 39:
-	// 	u.runSNXORSAVEEXECB64(state)
+	case 8:
+		u.runSBREVB32(state)
+	case 28:
+		u.runSGETPCB64(state)
+	case 32:
+		u.runSANDSAVEEXECB64(state)
+	case 33:
+		u.runSORSAVEEXECB64(state)
+	case 34:
+		u.runSXORSAVEEXECB64(state)
+	case 35:
+		u.runSANDN2SAVEEXECB64(state)
+	case 36:
+		u.runSORN2SAVEEXECB64(state)
+	case 37:
+		u.runSNANDSAVEEXECB64(state)
+	case 38:
+		u.runSNORSAVEEXECB64(state)
+	case 39:
+		u.runSNXORSAVEEXECB64(state)
 	default:
 		log.Panicf("Opcode %d for SOP1 format is not implemented", inst.Opcode)
 	}
@@ -63,108 +63,149 @@ func (u *ALUImpl) runSNOTU32(state InstEmuState) {
 	}
 }
 
-// func (u *ALUImpl) runSBREVB32(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSOP1()
-// 	dst := uint32(0)
-// 	for i := 0; i < 32; i++ {
-// 		bit := uint32(1 << (31 - i))
-// 		bit = uint32(sp.SRC0) & bit
-// 		bit = bit >> (31 - i)
-// 		bit = bit << i
-// 		dst = dst | bit
-// 	}
-// 	sp.DST = uint64(dst)
-// }
+func (u *ALUImpl) runSBREVB32(state InstEmuState) {
+	inst := state.Inst()
+	dst := uint32(0)
+	for i := 0; i < 32; i++ {
+		bit := uint32(1 << (31 - i))
+		src0 := u.ReadOperand(state, inst.Src0, 0, nil)
+		bit = uint32(src0) & bit
+		bit = bit >> (31 - i)
+		bit = bit << i
+		dst = dst | bit
+	}
+	u.WriteOperand(state, inst.Dst, 0, uint64(dst), nil)
+}
 
-// func (u *ALUImpl) runSGETPCB64(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSOP1()
-// 	sp.DST = sp.PC + 4
-// }
+func (u *ALUImpl) runSGETPCB64(state InstEmuState) {
+	inst := state.Inst()
+	u.WriteOperand(state, inst.Dst, 0, inst.PC+4, nil)
+}
 
-// func (u *ALUImpl) runSANDSAVEEXECB64(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSOP1()
-// 	sp.DST = sp.EXEC
-// 	sp.EXEC = sp.SRC0 & sp.EXEC
-// 	if sp.EXEC != 0 {
-// 		sp.SCC = 1
-// 	} else {
-// 		sp.SCC = 0
-// 	}
-// }
+func (u *ALUImpl) runSANDSAVEEXECB64(state InstEmuState) {
+	inst := state.Inst()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	u.WriteOperand(state, inst.Dst, 0, exec, nil)
 
-// func (u *ALUImpl) runSORSAVEEXECB64(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSOP1()
-// 	sp.DST = sp.EXEC
-// 	sp.EXEC = sp.SRC0 | sp.EXEC
-// 	if sp.EXEC != 0 {
-// 		sp.SCC = 1
-// 	} else {
-// 		sp.SCC = 0
-// 	}
-// }
+	src0 := u.ReadOperand(state, inst.Src0, 0, nil)
+	exec = src0 & exec
+	state.WriteReg(insts.Regs[insts.EXEC], 1, 0, exec)
 
-// func (u *ALUImpl) runSXORSAVEEXECB64(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSOP1()
-// 	sp.DST = sp.EXEC
-// 	sp.EXEC = sp.SRC0 ^ sp.EXEC
-// 	if sp.EXEC != 0 {
-// 		sp.SCC = 1
-// 	} else {
-// 		sp.SCC = 0
-// 	}
-// }
+	if exec != 0 {
+		state.WriteReg(insts.Regs[insts.SCC], 1, 0, 1)
+	} else {
+		state.WriteReg(insts.Regs[insts.SCC], 1, 0, 0)
+	}
+}
 
-// func (u *ALUImpl) runSANDN2SAVEEXECB64(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSOP1()
-// 	sp.DST = sp.EXEC
-// 	sp.EXEC = sp.SRC0 & (^sp.EXEC)
-// 	if sp.EXEC != 0 {
-// 		sp.SCC = 1
-// 	} else {
-// 		sp.SCC = 0
-// 	}
-// }
+func (u *ALUImpl) runSORSAVEEXECB64(state InstEmuState) {
+	inst := state.Inst()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	u.WriteOperand(state, inst.Dst, 0, exec, nil)
 
-// func (u *ALUImpl) runSORN2SAVEEXECB64(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSOP1()
-// 	sp.DST = sp.EXEC
-// 	sp.EXEC = sp.SRC0 | (^sp.EXEC)
-// 	if sp.EXEC != 0 {
-// 		sp.SCC = 1
-// 	} else {
-// 		sp.SCC = 0
-// 	}
-// }
+	src0 := u.ReadOperand(state, inst.Src0, 0, nil)
+	exec = src0 | exec
+	state.WriteReg(insts.Regs[insts.EXEC], 1, 0, exec)
 
-// func (u *ALUImpl) runSNANDSAVEEXECB64(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSOP1()
-// 	sp.DST = sp.EXEC
-// 	sp.EXEC = ^(sp.SRC0 & sp.EXEC)
-// 	if sp.EXEC != 0 {
-// 		sp.SCC = 1
-// 	} else {
-// 		sp.SCC = 0
-// 	}
-// }
+	if exec != 0 {
+		state.WriteReg(insts.Regs[insts.SCC], 1, 0, 1)
+	} else {
+		state.WriteReg(insts.Regs[insts.SCC], 1, 0, 0)
+	}
+}
 
-// func (u *ALUImpl) runSNORSAVEEXECB64(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSOP1()
-// 	sp.DST = sp.EXEC
-// 	sp.EXEC = ^(sp.SRC0 | sp.EXEC)
-// 	if sp.EXEC != 0 {
-// 		sp.SCC = 1
-// 	} else {
-// 		sp.SCC = 0
-// 	}
-// }
+func (u *ALUImpl) runSXORSAVEEXECB64(state InstEmuState) {
+	inst := state.Inst()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	u.WriteOperand(state, inst.Dst, 0, exec, nil)
 
-// func (u *ALUImpl) runSNXORSAVEEXECB64(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSOP1()
-// 	sp.DST = sp.EXEC
-// 	sp.EXEC = ^(sp.SRC0 ^ sp.EXEC)
-// 	if sp.EXEC != 0 {
-// 		sp.SCC = 1
-// 	} else {
-// 		sp.SCC = 0
-// 	}
-// }
+	src0 := u.ReadOperand(state, inst.Src0, 0, nil)
+	exec = src0 ^ exec
+	state.WriteReg(insts.Regs[insts.EXEC], 1, 0, exec)
+
+	if exec != 0 {
+		state.WriteReg(insts.Regs[insts.SCC], 1, 0, 1)
+	} else {
+		state.WriteReg(insts.Regs[insts.SCC], 1, 0, 0)
+	}
+}
+
+func (u *ALUImpl) runSANDN2SAVEEXECB64(state InstEmuState) {
+	inst := state.Inst()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	u.WriteOperand(state, inst.Dst, 0, exec, nil)
+
+	src0 := u.ReadOperand(state, inst.Src0, 0, nil)
+	exec = src0 & (^exec)
+	state.WriteReg(insts.Regs[insts.EXEC], 1, 0, exec)
+
+	if exec != 0 {
+		state.WriteReg(insts.Regs[insts.SCC], 1, 0, 1)
+	} else {
+		state.WriteReg(insts.Regs[insts.SCC], 1, 0, 0)
+	}
+}
+
+func (u *ALUImpl) runSORN2SAVEEXECB64(state InstEmuState) {
+	inst := state.Inst()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	u.WriteOperand(state, inst.Dst, 0, exec, nil)
+
+	src0 := u.ReadOperand(state, inst.Src0, 0, nil)
+	exec = src0 | (^exec)
+	state.WriteReg(insts.Regs[insts.EXEC], 1, 0, exec)
+
+	if exec != 0 {
+		state.WriteReg(insts.Regs[insts.SCC], 1, 0, 1)
+	} else {
+		state.WriteReg(insts.Regs[insts.SCC], 1, 0, 0)
+	}
+}
+
+func (u *ALUImpl) runSNANDSAVEEXECB64(state InstEmuState) {
+	inst := state.Inst()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	u.WriteOperand(state, inst.Dst, 0, exec, nil)
+
+	src0 := u.ReadOperand(state, inst.Src0, 0, nil)
+	exec = ^(src0 & exec)
+	state.WriteReg(insts.Regs[insts.EXEC], 1, 0, exec)
+
+	if exec != 0 {
+		state.WriteReg(insts.Regs[insts.SCC], 1, 0, 1)
+	} else {
+		state.WriteReg(insts.Regs[insts.SCC], 1, 0, 0)
+	}
+}
+
+func (u *ALUImpl) runSNORSAVEEXECB64(state InstEmuState) {
+	inst := state.Inst()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	u.WriteOperand(state, inst.Dst, 0, exec, nil)
+
+	src0 := u.ReadOperand(state, inst.Src0, 0, nil)
+	exec = ^(src0 | exec)
+	state.WriteReg(insts.Regs[insts.EXEC], 1, 0, exec)
+
+	if exec != 0 {
+		state.WriteReg(insts.Regs[insts.SCC], 1, 0, 1)
+	} else {
+		state.WriteReg(insts.Regs[insts.SCC], 1, 0, 0)
+	}
+}
+
+func (u *ALUImpl) runSNXORSAVEEXECB64(state InstEmuState) {
+	inst := state.Inst()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	u.WriteOperand(state, inst.Dst, 0, exec, nil)
+
+	src0 := u.ReadOperand(state, inst.Src0, 0, nil)
+	exec = ^(src0 ^ exec)
+	state.WriteReg(insts.Regs[insts.EXEC], 1, 0, exec)
+
+	if exec != 0 {
+		state.WriteReg(insts.Regs[insts.SCC], 1, 0, 1)
+	} else {
+		state.WriteReg(insts.Regs[insts.SCC], 1, 0, 0)
+	}
+}
