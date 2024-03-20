@@ -100,8 +100,8 @@ func (u *ALUImpl) Run(state InstEmuState) {
 	switch inst.FormatType {
 	case insts.SOP1:
 		u.runSOP1(state)
-	// case insts.SOP2:
-	// 	u.runSOP2(state)
+	case insts.SOP2:
+		u.runSOP2(state)
 	// case insts.SOPC:
 	// 	u.runSOPC(state)
 	// case insts.SMEM:

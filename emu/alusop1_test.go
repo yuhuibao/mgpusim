@@ -89,7 +89,6 @@ var _ = Describe("ALU", func() {
 		inst.PC = 0xffffffff00000000
 		wf.inst = inst
 
-		wf.WriteReg(insts.SReg(1), 2, 0, inst.PC)
 		alu.Run(wf)
 		results := wf.ReadReg(insts.SReg(1), 2, 0)
 		Expect(results).To(Equal(uint64(0xffffffff00000004)))
