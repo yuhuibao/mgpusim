@@ -120,8 +120,8 @@ func (u *ALUImpl) Run(state InstEmuState) {
 	// 	u.runFlat(state)
 	// case insts.SOPP:
 	// 	u.runSOPP(state)
-	// case insts.SOPK:
-	// 	u.runSOPK(state)
+	case insts.SOPK:
+		u.runSOPK(state)
 	// case insts.DS:
 	// 	u.runDS(state)
 	default:
