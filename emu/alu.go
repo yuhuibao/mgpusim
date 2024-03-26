@@ -104,8 +104,8 @@ func (u *ALUImpl) Run(state InstEmuState) {
 		u.runSOP2(state)
 	case insts.SOPC:
 		u.runSOPC(state)
-	// case insts.SMEM:
-	// 	u.runSMEM(state)
+	case insts.SMEM:
+		u.runSMEM(state)
 	// case insts.VOP1:
 	// 	u.runVOP1(state)
 	// case insts.VOP2:

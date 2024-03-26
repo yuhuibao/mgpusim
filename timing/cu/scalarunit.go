@@ -15,8 +15,7 @@ import (
 type ScalarUnit struct {
 	cu *ComputeUnit
 
-	scratchpadPreparer ScratchpadPreparer
-	alu                emu.ALU
+	alu emu.ALU
 
 	toRead  *wavefront.Wavefront
 	toExec  *wavefront.Wavefront
@@ -34,12 +33,10 @@ type ScalarUnit struct {
 // the compute unit.
 func NewScalarUnit(
 	cu *ComputeUnit,
-	scratchpadPreparer ScratchpadPreparer,
 	alu emu.ALU,
 ) *ScalarUnit {
 	u := new(ScalarUnit)
 	u.cu = cu
-	u.scratchpadPreparer = scratchpadPreparer
 	u.alu = alu
 	u.readBufSize = 16
 	u.readBuf = make([]*mem.ReadReq, 0, u.readBufSize)
@@ -78,7 +75,6 @@ func (u *ScalarUnit) runReadStage(now sim.VTimeInSec) bool {
 	}
 
 	if u.toExec == nil {
-		u.scratchpadPreparer.Prepare(u.toRead, u.toRead)
 
 		u.toExec = u.toRead
 		u.toRead = nil
@@ -215,8 +211,6 @@ func (u *ScalarUnit) runWriteStage(now sim.VTimeInSec) bool {
 	if u.toWrite == nil {
 		return false
 	}
-
-	u.scratchpadPreparer.Commit(u.toWrite, u.toWrite)
 
 	u.cu.logInstTask(now, u.toWrite, u.toWrite.DynamicInst(), true)
 
