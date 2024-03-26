@@ -13,10 +13,10 @@ func (u *ALUImpl) runSMEM(state InstEmuState) {
 		u.runSLOADDWORD(state)
 	case 1:
 		u.runSLOADDWORDX2(state)
-	// case 2:
-	// 	u.runSLOADDWORDX4(state)
-	// case 3:
-	// 	u.runSLOADDWORDX8(state)
+	case 2:
+		u.runSLOADDWORDX4(state)
+	case 3:
+		u.runSLOADDWORDX8(state)
 	default:
 		log.Panicf("Opcode %d for SMEM format is not implemented", inst.Opcode)
 	}
@@ -43,23 +43,35 @@ func (u *ALUImpl) runSLOADDWORDX2(state InstEmuState) {
 	u.WriteOperand(state, inst.Data, 0, insts.BytesToUint64(buf), nil)
 }
 
-// func (u *ALUImpl) runSLOADDWORDX4(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSMEM()
-// 	spRaw := state.Scratchpad()
-// 	pid := state.PID()
+func (u *ALUImpl) runSLOADDWORDX4(state InstEmuState) {
+	inst := state.Inst()
+	offset := u.ReadOperand(state, inst.Offset, 0, nil)
+	base := u.ReadOperand(state, inst.Base, 0, nil)
+	pid := state.PID()
 
-// 	buf := u.storageAccessor.Read(pid, sp.Base+sp.Offset, 16)
-// 	copy(spRaw[32:48], buf)
-// }
+	buf := u.storageAccessor.Read(pid, base+offset, 16)
+	var buffer []uint32
+	for i := 0; i < 16; i += 4 {
+		num := uint32(buf[i]) | uint32(buf[i+1])<<8 | uint32(buf[i+2])<<16 | uint32(buf[i+3])<<24
+		buffer = append(buffer, num)
+	}
+	u.WriteOperand(state, inst.Data, 0, 0, buffer)
+}
 
-// func (u *ALUImpl) runSLOADDWORDX8(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSMEM()
-// 	spRaw := state.Scratchpad()
-// 	pid := state.PID()
+func (u *ALUImpl) runSLOADDWORDX8(state InstEmuState) {
+	inst := state.Inst()
+	offset := u.ReadOperand(state, inst.Offset, 0, nil)
+	base := u.ReadOperand(state, inst.Base, 0, nil)
+	pid := state.PID()
 
-// 	buf := u.storageAccessor.Read(pid, sp.Base+sp.Offset, 32)
-// 	copy(spRaw[32:64], buf)
-// }
+	buf := u.storageAccessor.Read(pid, base+offset, 32)
+	var buffer []uint32
+	for i := 0; i < 32; i += 4 {
+		num := uint32(buf[i]) | uint32(buf[i+1])<<8 | uint32(buf[i+2])<<16 | uint32(buf[i+3])<<24
+		buffer = append(buffer, num)
+	}
+	u.WriteOperand(state, inst.Data, 0, 0, buffer)
+}
 
 // //nolint:gocyclo
 // func (u *ALUImpl) runSOPP(state InstEmuState) {

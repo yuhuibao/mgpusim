@@ -68,90 +68,96 @@ var _ = Describe("ALU", func() {
 		Expect(results).To(Equal(uint64(217)))
 	})
 
-	// It("should run S_LOAD_DWORDX2", func() {
-	// 	pageTable.EXPECT().
-	// 		Find(vm.PID(1), uint64(1040)).
-	// 		Return(vm.Page{
-	// 			PAddr: uint64(0),
-	// 		}, true)
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SMEM
-	// 	state.inst.Opcode = 1
+	It("should run S_LOAD_DWORDX2", func() {
+		pageTable.EXPECT().
+			Find(vm.PID(1), uint64(1040)).
+			Return(vm.Page{
+				PAddr: uint64(0),
+			}, true)
+		inst := insts.NewInst()
+		inst.FormatType = insts.SMEM
+		inst.Opcode = 1
+		inst.Base = insts.NewSRegOperand(0, 0, 2)
+		inst.Offset = insts.NewIntOperand(0, 16)
+		inst.Data = insts.NewSRegOperand(2, 2, 2)
+		wf.inst = inst
 
-	// 	layout := state.Scratchpad().AsSMEM()
-	// 	layout.Base = 1024
-	// 	layout.Offset = 16
+		wf.WriteReg(insts.SReg(0), 2, 0, uint64(1024))
+		storage.Write(uint64(1040), insts.Uint32ToBytes(217))
+		storage.Write(uint64(1044), insts.Uint32ToBytes(218))
 
-	// 	storage.Write(uint64(1040), insts.Uint32ToBytes(217))
-	// 	storage.Write(uint64(1044), insts.Uint32ToBytes(218))
+		alu.Run(wf)
+		results := wf.ReadReg(insts.SReg(2), 2, 0)
+		Expect(results).To(Equal(uint64(218<<32 + 217)))
+	})
 
-	// 	alu.Run(state)
+	It("should run S_LOAD_DWORDX4", func() {
+		pageTable.EXPECT().
+			Find(vm.PID(1), uint64(1040)).
+			Return(vm.Page{
+				PAddr: uint64(0),
+			}, true)
+		inst := insts.NewInst()
+		inst.FormatType = insts.SMEM
+		inst.Opcode = 2
+		inst.Base = insts.NewSRegOperand(0, 0, 2)
+		inst.Offset = insts.NewIntOperand(0, 16)
+		inst.Data = insts.NewSRegOperand(2, 2, 4)
+		wf.inst = inst
 
-	// 	Expect(layout.DST[0]).To(Equal(uint32(217)))
-	// 	Expect(layout.DST[1]).To(Equal(uint32(218)))
-	// })
+		wf.WriteReg(insts.SReg(0), 2, 0, uint64(1024))
+		storage.Write(uint64(1040), insts.Uint32ToBytes(217))
+		storage.Write(uint64(1044), insts.Uint32ToBytes(218))
+		storage.Write(uint64(1048), insts.Uint32ToBytes(219))
+		storage.Write(uint64(1052), insts.Uint32ToBytes(220))
 
-	// It("should run S_LOAD_DWORDX4", func() {
-	// 	pageTable.EXPECT().
-	// 		Find(vm.PID(1), uint64(1040)).
-	// 		Return(vm.Page{
-	// 			PAddr: uint64(0),
-	// 		}, true)
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SMEM
-	// 	state.inst.Opcode = 2
+		alu.Run(wf)
+		results := make([]uint32, 4)
+		wf.ReadReg4Plus(insts.SReg(2), 4, 0, results)
 
-	// 	layout := state.Scratchpad().AsSMEM()
-	// 	layout.Base = 1024
-	// 	layout.Offset = 16
+		Expect(results[0]).To(Equal(uint32(217)))
+		Expect(results[1]).To(Equal(uint32(218)))
+		Expect(results[2]).To(Equal(uint32(219)))
+		Expect(results[3]).To(Equal(uint32(220)))
+	})
 
-	// 	storage.Write(uint64(1040), insts.Uint32ToBytes(217))
-	// 	storage.Write(uint64(1044), insts.Uint32ToBytes(218))
-	// 	storage.Write(uint64(1048), insts.Uint32ToBytes(219))
-	// 	storage.Write(uint64(1052), insts.Uint32ToBytes(220))
+	It("should run S_LOAD_DWORDX8", func() {
+		pageTable.EXPECT().
+			Find(vm.PID(1), uint64(1040)).
+			Return(vm.Page{
+				PAddr: uint64(0),
+			}, true)
+		inst := insts.NewInst()
+		inst.FormatType = insts.SMEM
+		inst.Opcode = 3
+		inst.Base = insts.NewSRegOperand(0, 0, 2)
+		inst.Offset = insts.NewIntOperand(0, 16)
+		inst.Data = insts.NewSRegOperand(2, 2, 8)
+		wf.inst = inst
 
-	// 	alu.Run(state)
+		wf.WriteReg(insts.SReg(0), 2, 0, uint64(1024))
+		storage.Write(uint64(1040), insts.Uint32ToBytes(217))
+		storage.Write(uint64(1044), insts.Uint32ToBytes(218))
+		storage.Write(uint64(1048), insts.Uint32ToBytes(219))
+		storage.Write(uint64(1052), insts.Uint32ToBytes(220))
+		storage.Write(uint64(1056), insts.Uint32ToBytes(221))
+		storage.Write(uint64(1060), insts.Uint32ToBytes(222))
+		storage.Write(uint64(1064), insts.Uint32ToBytes(223))
+		storage.Write(uint64(1068), insts.Uint32ToBytes(224))
 
-	// 	Expect(layout.DST[0]).To(Equal(uint32(217)))
-	// 	Expect(layout.DST[1]).To(Equal(uint32(218)))
-	// 	Expect(layout.DST[2]).To(Equal(uint32(219)))
-	// 	Expect(layout.DST[3]).To(Equal(uint32(220)))
-	// })
+		alu.Run(wf)
+		results := make([]uint32, 8)
+		wf.ReadReg4Plus(insts.SReg(2), 8, 0, results)
 
-	// It("should run S_LOAD_DWORDX8", func() {
-	// 	pageTable.EXPECT().
-	// 		Find(vm.PID(1), uint64(1040)).
-	// 		Return(vm.Page{
-	// 			PAddr: uint64(0),
-	// 		}, true)
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SMEM
-	// 	state.inst.Opcode = 3
-
-	// 	layout := state.Scratchpad().AsSMEM()
-	// 	layout.Base = 1024
-	// 	layout.Offset = 16
-
-	// 	storage.Write(uint64(1040), insts.Uint32ToBytes(217))
-	// 	storage.Write(uint64(1044), insts.Uint32ToBytes(218))
-	// 	storage.Write(uint64(1048), insts.Uint32ToBytes(219))
-	// 	storage.Write(uint64(1052), insts.Uint32ToBytes(220))
-	// 	storage.Write(uint64(1056), insts.Uint32ToBytes(221))
-	// 	storage.Write(uint64(1060), insts.Uint32ToBytes(222))
-	// 	storage.Write(uint64(1064), insts.Uint32ToBytes(223))
-	// 	storage.Write(uint64(1068), insts.Uint32ToBytes(224))
-
-	// 	alu.Run(state)
-
-	// 	Expect(layout.DST[0]).To(Equal(uint32(217)))
-	// 	Expect(layout.DST[1]).To(Equal(uint32(218)))
-	// 	Expect(layout.DST[2]).To(Equal(uint32(219)))
-	// 	Expect(layout.DST[3]).To(Equal(uint32(220)))
-	// 	Expect(layout.DST[4]).To(Equal(uint32(221)))
-	// 	Expect(layout.DST[5]).To(Equal(uint32(222)))
-	// 	Expect(layout.DST[6]).To(Equal(uint32(223)))
-	// 	Expect(layout.DST[7]).To(Equal(uint32(224)))
-	// })
+		Expect(results[0]).To(Equal(uint32(217)))
+		Expect(results[1]).To(Equal(uint32(218)))
+		Expect(results[2]).To(Equal(uint32(219)))
+		Expect(results[3]).To(Equal(uint32(220)))
+		Expect(results[4]).To(Equal(uint32(221)))
+		Expect(results[5]).To(Equal(uint32(222)))
+		Expect(results[6]).To(Equal(uint32(223)))
+		Expect(results[7]).To(Equal(uint32(224)))
+	})
 
 	// It("should run S_CBRANCH", func() {
 	// 	state.inst = insts.NewInst()
