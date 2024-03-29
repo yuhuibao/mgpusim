@@ -173,9 +173,9 @@ func (u *ALUImpl) runSCBRANCHEXECNZ(state InstEmuState) {
 	}
 }
 
-// func laneMasked(Exec uint64, laneID uint) bool {
-// 	return Exec&(1<<laneID) > 0
-// }
+func laneMasked(Exec uint64, laneID uint) bool {
+	return Exec&(1<<laneID) > 0
+}
 
 // func (u *ALUImpl) sdwaSrcSelect(src uint32, sel insts.SDWASelect) uint32 {
 // 	switch sel {
