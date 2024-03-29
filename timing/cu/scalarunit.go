@@ -123,9 +123,10 @@ func (u *ScalarUnit) executeSMEMInst(now sim.VTimeInSec) bool {
 
 func (u *ScalarUnit) executeSMEMLoad(byteSize int, now sim.VTimeInSec) bool {
 	inst := u.toExec.DynamicInst()
-	sp := u.toExec.Scratchpad().AsSMEM()
+	offset := u.alu.ReadOperand(u.toExec, inst.Offset, 0, nil)
+	base := u.alu.ReadOperand(u.toExec, inst.Base, 0, nil)
 
-	start := sp.Base + sp.Offset
+	start := base + offset
 	numCacheline := u.numCacheline(start, uint64(byteSize))
 
 	if len(u.readBuf)+numCacheline > u.readBufSize {
