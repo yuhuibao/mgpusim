@@ -79,7 +79,8 @@ func (u *ALUImpl) runSBREVB32(state InstEmuState) {
 
 func (u *ALUImpl) runSGETPCB64(state InstEmuState) {
 	inst := state.Inst()
-	u.WriteOperand(state, inst.Dst, 0, inst.PC+4, nil)
+	pc := state.ReadReg(insts.Regs[insts.PC], 1, 0)
+	u.WriteOperand(state, inst.Dst, 0, pc+4, nil)
 }
 
 func (u *ALUImpl) runSANDSAVEEXECB64(state InstEmuState) {

@@ -159,182 +159,194 @@ var _ = Describe("ALU", func() {
 		Expect(results[7]).To(Equal(uint32(224)))
 	})
 
-	// It("should run S_CBRANCH", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOPP
-	// 	state.inst.Opcode = 2
+	It("should run S_CBRANCH", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOPP
+		inst.Opcode = 2
+		inst.SImm16 = insts.NewSRegOperand(0, 0, 1)
 
-	// 	layout := state.Scratchpad().AsSOPP()
-	// 	layout.PC = 160
-	// 	layout.IMM = 16
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(0), 1, 0, 16)
+		wf.WriteReg(insts.Regs[insts.PC], 1, 0, 160)
 
-	// 	alu.Run(state)
+		alu.Run(wf)
 
-	// 	Expect(layout.PC).To(Equal(uint64(160 + 16*4)))
-	// })
+		Expect(wf.PC).To(Equal(uint64(160 + 16*4)))
+	})
 
-	// It("should run S_CBRANCH, when IMM is negative", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOPP
-	// 	state.inst.Opcode = 2
+	It("should run S_CBRANCH, when IMM is negative", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOPP
+		inst.Opcode = 2
+		inst.SImm16 = insts.NewSRegOperand(0, 0, 1)
 
-	// 	layout := state.Scratchpad().AsSOPP()
-	// 	layout.PC = 1024
-	// 	layout.IMM = int64ToBits(-32)
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(0), 1, 0, int64ToBits(-32))
+		wf.WriteReg(insts.Regs[insts.PC], 1, 0, 1024)
 
-	// 	alu.Run(state)
+		alu.Run(wf)
 
-	// 	Expect(layout.PC).To(Equal(uint64(1024 - 32*4)))
-	// })
+		Expect(wf.PC).To(Equal(uint64(1024 - 32*4)))
+	})
 
-	// It("should run S_CBRANCH_SCC0", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOPP
-	// 	state.inst.Opcode = 4
+	It("should run S_CBRANCH_SCC0", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOPP
+		inst.Opcode = 4
+		inst.SImm16 = insts.NewSRegOperand(0, 0, 1)
 
-	// 	layout := state.Scratchpad().AsSOPP()
-	// 	layout.PC = 160
-	// 	layout.IMM = 16
-	// 	layout.SCC = 0
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(0), 1, 0, 16)
+		wf.WriteReg(insts.Regs[insts.PC], 1, 0, 160)
+		wf.WriteReg(insts.Regs[insts.SCC], 1, 0, 0)
 
-	// 	alu.Run(state)
+		alu.Run(wf)
 
-	// 	Expect(layout.PC).To(Equal(uint64(160 + 16*4)))
-	// })
+		Expect(wf.PC).To(Equal(uint64(160 + 16*4)))
+	})
 
-	// It("should run S_CBRANCH_SCC0, when IMM is negative", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOPP
-	// 	state.inst.Opcode = 4
+	It("should run S_CBRANCH_SCC0, when IMM is negative", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOPP
+		inst.Opcode = 4
+		inst.SImm16 = insts.NewSRegOperand(0, 0, 1)
 
-	// 	layout := state.Scratchpad().AsSOPP()
-	// 	layout.PC = 1024
-	// 	layout.IMM = int64ToBits(-32)
-	// 	layout.SCC = 0
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(0), 1, 0, int64ToBits(-32))
+		wf.WriteReg(insts.Regs[insts.PC], 1, 0, 1024)
+		wf.WriteReg(insts.Regs[insts.SCC], 1, 0, 0)
 
-	// 	alu.Run(state)
+		alu.Run(wf)
 
-	// 	Expect(layout.PC).To(Equal(uint64(1024 - 32*4)))
-	// })
+		Expect(wf.PC).To(Equal(uint64(1024 - 32*4)))
+	})
 
-	// It("should skip S_CBRANCH_SCC0, if SCC is 1", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOPP
-	// 	state.inst.Opcode = 4
+	It("should skip S_CBRANCH_SCC0, if SCC is 1", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOPP
+		inst.Opcode = 4
+		inst.SImm16 = insts.NewSRegOperand(0, 0, 1)
 
-	// 	layout := state.Scratchpad().AsSOPP()
-	// 	layout.PC = 160
-	// 	layout.IMM = 16
-	// 	layout.SCC = 1
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(0), 1, 0, 16)
+		wf.WriteReg(insts.Regs[insts.PC], 1, 0, 160)
+		wf.WriteReg(insts.Regs[insts.SCC], 1, 0, 1)
 
-	// 	alu.Run(state)
+		alu.Run(wf)
 
-	// 	Expect(layout.PC).To(Equal(uint64(160)))
-	// })
+		Expect(wf.PC).To(Equal(uint64(160)))
+	})
 
-	// It("should run S_CBRANCH_SCC1", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOPP
-	// 	state.inst.Opcode = 5
+	It("should run S_CBRANCH_SCC1", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOPP
+		inst.Opcode = 5
+		inst.SImm16 = insts.NewSRegOperand(0, 0, 1)
 
-	// 	layout := state.Scratchpad().AsSOPP()
-	// 	layout.PC = 160
-	// 	layout.IMM = 16
-	// 	layout.SCC = 1
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(0), 1, 0, 16)
+		wf.WriteReg(insts.Regs[insts.PC], 1, 0, 160)
+		wf.WriteReg(insts.Regs[insts.SCC], 1, 0, 1)
 
-	// 	alu.Run(state)
+		alu.Run(wf)
 
-	// 	Expect(layout.PC).To(Equal(uint64(160 + 16*4)))
-	// })
+		Expect(wf.PC).To(Equal(uint64(160 + 16*4)))
+	})
 
-	// It("should run S_CBRANCH_SCC1, when IMM is negative", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOPP
-	// 	state.inst.Opcode = 5
+	It("should run S_CBRANCH_SCC1, when IMM is negative", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOPP
+		inst.Opcode = 5
+		inst.SImm16 = insts.NewSRegOperand(0, 0, 1)
 
-	// 	layout := state.Scratchpad().AsSOPP()
-	// 	layout.PC = 1024
-	// 	layout.IMM = int64ToBits(-32)
-	// 	layout.SCC = 1
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(0), 1, 0, int64ToBits(-32))
+		wf.WriteReg(insts.Regs[insts.PC], 1, 0, 1024)
+		wf.WriteReg(insts.Regs[insts.SCC], 1, 0, 1)
 
-	// 	alu.Run(state)
+		alu.Run(wf)
 
-	// 	Expect(layout.PC).To(Equal(uint64(1024 - 32*4)))
-	// })
+		Expect(wf.PC).To(Equal(uint64(1024 - 32*4)))
+	})
 
-	// It("should skip S_CBRANCH_SCC1, if SCC is 0", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOPP
-	// 	state.inst.Opcode = 5
+	It("should skip S_CBRANCH_SCC1, if SCC is 0", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOPP
+		inst.Opcode = 5
+		inst.SImm16 = insts.NewSRegOperand(0, 0, 1)
 
-	// 	layout := state.Scratchpad().AsSOPP()
-	// 	layout.PC = 160
-	// 	layout.IMM = 16
-	// 	layout.SCC = 0
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(0), 1, 0, 16)
+		wf.WriteReg(insts.Regs[insts.PC], 1, 0, 160)
+		wf.WriteReg(insts.Regs[insts.SCC], 1, 0, 0)
 
-	// 	alu.Run(state)
+		alu.Run(wf)
 
-	// 	Expect(layout.PC).To(Equal(uint64(160)))
-	// })
+		Expect(wf.PC).To(Equal(uint64(160)))
+	})
 
-	// It("should run S_CBRANCH_VCCZ", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOPP
-	// 	state.inst.Opcode = 6
+	It("should run S_CBRANCH_VCCZ", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOPP
+		inst.Opcode = 6
+		inst.SImm16 = insts.NewSRegOperand(0, 0, 1)
 
-	// 	layout := state.Scratchpad().AsSOPP()
-	// 	layout.PC = 160
-	// 	layout.IMM = 16
-	// 	layout.VCC = 0
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(0), 1, 0, 16)
+		wf.WriteReg(insts.Regs[insts.PC], 1, 0, 160)
+		wf.WriteReg(insts.Regs[insts.VCC], 1, 0, 0)
 
-	// 	alu.Run(state)
+		alu.Run(wf)
 
-	// 	Expect(layout.PC).To(Equal(uint64(160 + 16*4)))
-	// })
+		Expect(wf.PC).To(Equal(uint64(160 + 16*4)))
+	})
 
-	// It("should run S_CBRANCH_VCCNZ", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOPP
-	// 	state.inst.Opcode = 7
+	It("should run S_CBRANCH_VCCNZ", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOPP
+		inst.Opcode = 7
+		inst.SImm16 = insts.NewSRegOperand(0, 0, 1)
 
-	// 	layout := state.Scratchpad().AsSOPP()
-	// 	layout.PC = 160
-	// 	layout.IMM = 16
-	// 	layout.VCC = 0xffffffffffffffff
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(0), 1, 0, 16)
+		wf.WriteReg(insts.Regs[insts.PC], 1, 0, 160)
+		wf.WriteReg(insts.Regs[insts.VCC], 1, 0, 0xffffffffffffffff)
 
-	// 	alu.Run(state)
+		alu.Run(wf)
 
-	// 	Expect(layout.PC).To(Equal(uint64(160 + 16*4)))
-	// })
+		Expect(wf.PC).To(Equal(uint64(160 + 16*4)))
+	})
 
-	// It("should run S_CBRANCH_EXECZ", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOPP
-	// 	state.inst.Opcode = 8
+	It("should run S_CBRANCH_EXECZ", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOPP
+		inst.Opcode = 8
+		inst.SImm16 = insts.NewSRegOperand(0, 0, 1)
 
-	// 	layout := state.Scratchpad().AsSOPP()
-	// 	layout.PC = 160
-	// 	layout.IMM = 16
-	// 	layout.EXEC = 0
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(0), 1, 0, 16)
+		wf.WriteReg(insts.Regs[insts.PC], 1, 0, 160)
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0)
 
-	// 	alu.Run(state)
+		alu.Run(wf)
 
-	// 	Expect(layout.PC).To(Equal(uint64(160 + 16*4)))
-	// })
+		Expect(wf.PC).To(Equal(uint64(160 + 16*4)))
+	})
 
-	// It("should run S_CBRANCH_EXECNZ", func() {
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.SOPP
-	// 	state.inst.Opcode = 9
+	It("should run S_CBRANCH_EXECNZ", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.SOPP
+		inst.Opcode = 9
+		inst.SImm16 = insts.NewSRegOperand(0, 0, 1)
 
-	// 	layout := state.Scratchpad().AsSOPP()
-	// 	layout.PC = 160
-	// 	layout.IMM = 16
-	// 	layout.EXEC = 1
+		wf.inst = inst
+		wf.WriteReg(insts.SReg(0), 1, 0, 16)
+		wf.WriteReg(insts.Regs[insts.PC], 1, 0, 160)
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 1)
 
-	// 	alu.Run(state)
+		alu.Run(wf)
 
-	// 	Expect(layout.PC).To(Equal(uint64(160 + 16*4)))
-	// })
+		Expect(wf.PC).To(Equal(uint64(160 + 16*4)))
+	})
 
 })

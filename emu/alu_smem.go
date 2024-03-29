@@ -74,85 +74,104 @@ func (u *ALUImpl) runSLOADDWORDX8(state InstEmuState) {
 }
 
 // //nolint:gocyclo
-// func (u *ALUImpl) runSOPP(state InstEmuState) {
-// 	inst := state.Inst()
-// 	switch inst.Opcode {
-// 	case 0: // S_NOP
-// 	// Do nothing
-// 	case 2: // S_CBRANCH
-// 		u.runSCBRANCH(state)
-// 	case 4: // S_CBRANCH_SCC0
-// 		u.runSCBRANCHSCC0(state)
-// 	case 5: // S_CBRANCH_SCC1
-// 		u.runSCBRANCHSCC1(state)
-// 	case 6: // S_CBRANCH_VCCZ
-// 		u.runSCBRANCHVCCZ(state)
-// 	case 7: // S_CBRANCH_VCCNZ
-// 		u.runSCBRANCHVCCNZ(state)
-// 	case 8: // S_CBRANCH_EXECZ
-// 		u.runSCBRANCHEXECZ(state)
-// 	case 9: // S_CBRANCH_EXECNZ
-// 		u.runSCBRANCHEXECNZ(state)
-// 	case 12: // S_WAITCNT
-// 	// Do nothing
-// 	default:
-// 		log.Panicf("Opcode %d for SOPP format is not implemented", inst.Opcode)
-// 	}
-// }
+func (u *ALUImpl) runSOPP(state InstEmuState) {
+	inst := state.Inst()
+	switch inst.Opcode {
+	case 0: // S_NOP
+	// Do nothing
+	case 2: // S_CBRANCH
+		u.runSCBRANCH(state)
+	case 4: // S_CBRANCH_SCC0
+		u.runSCBRANCHSCC0(state)
+	case 5: // S_CBRANCH_SCC1
+		u.runSCBRANCHSCC1(state)
+	case 6: // S_CBRANCH_VCCZ
+		u.runSCBRANCHVCCZ(state)
+	case 7: // S_CBRANCH_VCCNZ
+		u.runSCBRANCHVCCNZ(state)
+	case 8: // S_CBRANCH_EXECZ
+		u.runSCBRANCHEXECZ(state)
+	case 9: // S_CBRANCH_EXECNZ
+		u.runSCBRANCHEXECNZ(state)
+	case 12: // S_WAITCNT
+	// Do nothing
+	default:
+		log.Panicf("Opcode %d for SOPP format is not implemented", inst.Opcode)
+	}
+}
 
-// func (u *ALUImpl) runSCBRANCH(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSOPP()
-// 	imm := asInt16(uint16(sp.IMM & 0xffff))
-// 	sp.PC = uint64(int64(sp.PC) + int64(imm)*4)
-// }
+func (u *ALUImpl) runSCBRANCH(state InstEmuState) {
+	inst := state.Inst()
+	imm := int16(uint16(u.ReadOperand(state, inst.SImm16, 0, nil) & 0xffff))
+	pc := uint64(int64(state.ReadReg(insts.Regs[insts.PC], 1, 0)) + int64(imm)*4)
+	state.WriteReg(insts.Regs[insts.PC], 1, 0, pc)
+}
 
-// func (u *ALUImpl) runSCBRANCHSCC0(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSOPP()
-// 	imm := asInt16(uint16(sp.IMM & 0xffff))
-// 	if sp.SCC == 0 {
-// 		sp.PC = uint64(int64(sp.PC) + int64(imm)*4)
-// 	}
-// }
+func (u *ALUImpl) runSCBRANCHSCC0(state InstEmuState) {
+	inst := state.Inst()
+	imm := int16(uint16(u.ReadOperand(state, inst.SImm16, 0, nil) & 0xffff))
 
-// func (u *ALUImpl) runSCBRANCHSCC1(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSOPP()
-// 	imm := asInt16(uint16(sp.IMM & 0xffff))
-// 	if sp.SCC == 1 {
-// 		sp.PC = uint64(int64(sp.PC) + int64(imm)*4)
-// 	}
-// }
+	scc := state.ReadReg(insts.Regs[insts.SCC], 1, 0)
+	if scc == 0 {
+		pc := uint64(int64(state.ReadReg(insts.Regs[insts.PC], 1, 0)) + int64(imm)*4)
+		state.WriteReg(insts.Regs[insts.PC], 1, 0, pc)
+	}
+}
 
-// func (u *ALUImpl) runSCBRANCHVCCZ(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSOPP()
-// 	imm := asInt16(uint16(sp.IMM & 0xffff))
-// 	if sp.VCC == 0 {
-// 		sp.PC = uint64(int64(sp.PC) + int64(imm)*4)
-// 	}
-// }
+func (u *ALUImpl) runSCBRANCHSCC1(state InstEmuState) {
+	inst := state.Inst()
+	imm := int16(uint16(u.ReadOperand(state, inst.SImm16, 0, nil) & 0xffff))
 
-// func (u *ALUImpl) runSCBRANCHVCCNZ(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSOPP()
-// 	imm := asInt16(uint16(sp.IMM & 0xffff))
-// 	if sp.VCC != 0 {
-// 		sp.PC = uint64(int64(sp.PC) + int64(imm)*4)
-// 	}
-// }
+	scc := state.ReadReg(insts.Regs[insts.SCC], 1, 0)
+	if scc == 1 {
+		pc := uint64(int64(state.ReadReg(insts.Regs[insts.PC], 1, 0)) + int64(imm)*4)
+		state.WriteReg(insts.Regs[insts.PC], 1, 0, pc)
+	}
+}
 
-// func (u *ALUImpl) runSCBRANCHEXECZ(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSOPP()
-// 	imm := asInt16(uint16(sp.IMM & 0xffff))
-// 	if sp.EXEC == 0 {
-// 		sp.PC = uint64(int64(sp.PC) + int64(imm)*4)
-// 	}
-// }
+func (u *ALUImpl) runSCBRANCHVCCZ(state InstEmuState) {
+	inst := state.Inst()
+	imm := int16(uint16(u.ReadOperand(state, inst.SImm16, 0, nil) & 0xffff))
 
-// func (u *ALUImpl) runSCBRANCHEXECNZ(state InstEmuState) {
-// 	sp := state.Scratchpad().AsSOPP()
-// 	imm := asInt16(uint16(sp.IMM & 0xffff))
-// 	if sp.EXEC != 0 {
-// 		sp.PC = uint64(int64(sp.PC) + int64(imm)*4)
-// 	}
-// }
+	vcc := state.ReadReg(insts.Regs[insts.VCC], 1, 0)
+	if vcc == 0 {
+		pc := uint64(int64(state.ReadReg(insts.Regs[insts.PC], 1, 0)) + int64(imm)*4)
+		state.WriteReg(insts.Regs[insts.PC], 1, 0, pc)
+	}
+}
+
+func (u *ALUImpl) runSCBRANCHVCCNZ(state InstEmuState) {
+	inst := state.Inst()
+	imm := int16(uint16(u.ReadOperand(state, inst.SImm16, 0, nil) & 0xffff))
+
+	vcc := state.ReadReg(insts.Regs[insts.VCC], 1, 0)
+	if vcc != 0 {
+		pc := uint64(int64(state.ReadReg(insts.Regs[insts.PC], 1, 0)) + int64(imm)*4)
+		state.WriteReg(insts.Regs[insts.PC], 1, 0, pc)
+	}
+}
+
+func (u *ALUImpl) runSCBRANCHEXECZ(state InstEmuState) {
+	inst := state.Inst()
+	imm := int16(uint16(u.ReadOperand(state, inst.SImm16, 0, nil) & 0xffff))
+
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	if exec == 0 {
+		pc := uint64(int64(state.ReadReg(insts.Regs[insts.PC], 1, 0)) + int64(imm)*4)
+		state.WriteReg(insts.Regs[insts.PC], 1, 0, pc)
+	}
+}
+
+func (u *ALUImpl) runSCBRANCHEXECNZ(state InstEmuState) {
+	inst := state.Inst()
+	imm := int16(uint16(u.ReadOperand(state, inst.SImm16, 0, nil) & 0xffff))
+
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	if exec != 0 {
+		pc := uint64(int64(state.ReadReg(insts.Regs[insts.PC], 1, 0)) + int64(imm)*4)
+		state.WriteReg(insts.Regs[insts.PC], 1, 0, pc)
+	}
+}
 
 // func laneMasked(Exec uint64, laneID uint) bool {
 // 	return Exec&(1<<laneID) > 0

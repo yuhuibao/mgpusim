@@ -99,6 +99,8 @@ func (wf *Wavefront) ReadReg(reg *insts.Reg, regCount int, laneID int) uint64 {
 		value = wf.Exec
 	} else if reg.RegType == insts.M0 {
 		value = uint64(wf.M0)
+	} else if reg.RegType == insts.PC {
+		value = wf.PC
 	} else {
 		log.Panicf("Register type %s not supported", reg.Name)
 	}
@@ -142,6 +144,8 @@ func (wf *Wavefront) WriteReg(reg *insts.Reg, regCount int, laneID int, data uin
 		wf.Exec = data
 	} else if reg.RegType == insts.M0 {
 		wf.M0 = uint32(data)
+	} else if reg.RegType == insts.PC {
+		wf.PC = data
 	} else {
 		log.Panicf("Register type %s not supported", reg.Name)
 	}

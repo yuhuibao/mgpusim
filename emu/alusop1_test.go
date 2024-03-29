@@ -86,7 +86,7 @@ var _ = Describe("ALU", func() {
 		inst.Opcode = 28
 
 		inst.Dst = insts.NewSRegOperand(1, 1, 2)
-		inst.PC = 0xffffffff00000000
+		wf.WriteReg(insts.Regs[insts.PC], 1, 0, 0xffffffff00000000)
 		wf.inst = inst
 
 		alu.Run(wf)
