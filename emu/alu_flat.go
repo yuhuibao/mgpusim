@@ -54,35 +54,41 @@ func (u *ALUImpl) runFlatLoadUByte(state InstEmuState) {
 	}
 }
 
-// func (u *ALUImpl) runFlatLoadUShort(state InstEmuState) {
-// 	sp := state.Scratchpad().AsFlat()
-// 	pid := state.PID()
-// 	for i := uint(0); i < 64; i++ {
-// 		if !laneMasked(sp.EXEC, i) {
-// 			continue
-// 		}
+func (u *ALUImpl) runFlatLoadUShort(state InstEmuState) {
+	inst := state.Inst()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	pid := state.PID()
 
-// 		buf := u.storageAccessor.Read(pid, sp.ADDR[i], uint64(4))
+	for i := 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
+		addr := u.ReadOperand(state, inst.Addr, i, nil)
 
-// 		buf[2] = 0
-// 		buf[3] = 0
+		buf := u.storageAccessor.Read(pid, addr, uint64(4))
 
-// 		sp.DST[i*4] = insts.BytesToUint32(buf)
-// 	}
-// }
+		buf[2] = 0
+		buf[3] = 0
 
-// func (u *ALUImpl) runFlatLoadDWord(state InstEmuState) {
-// 	sp := state.Scratchpad().AsFlat()
-// 	pid := state.PID()
-// 	for i := uint(0); i < 64; i++ {
-// 		if !laneMasked(sp.EXEC, i) {
-// 			continue
-// 		}
+		u.WriteOperand(state, inst.Data, i, uint64(insts.BytesToUint32(buf)), nil)
+	}
+}
 
-// 		buf := u.storageAccessor.Read(pid, sp.ADDR[i], uint64(4))
-// 		sp.DST[i*4] = insts.BytesToUint32(buf)
-// 	}
-// }
+func (u *ALUImpl) runFlatLoadDWord(state InstEmuState) {
+	inst := state.Inst()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	pid := state.PID()
+
+	for i := 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
+		addr := u.ReadOperand(state, inst.Addr, i, nil)
+
+		buf := u.storageAccessor.Read(pid, addr, uint64(4))
+		u.WriteOperand(state, inst.Data, i, uint64(insts.BytesToUint32(buf)), nil)
+	}
+}
 
 // func (u *ALUImpl) runFlatLoadDWordX2(state InstEmuState) {
 // 	sp := state.Scratchpad().AsFlat()
@@ -116,35 +122,41 @@ func (u *ALUImpl) runFlatLoadUByte(state InstEmuState) {
 // 	}
 // }
 
-// func (u *ALUImpl) runFlatStoreDWord(state InstEmuState) {
-// 	sp := state.Scratchpad().AsFlat()
-// 	pid := state.PID()
+func (u *ALUImpl) runFlatStoreDWord(state InstEmuState) {
+	inst := state.Inst()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	pid := state.PID()
 
-// 	for i := uint(0); i < 64; i++ {
-// 		if !laneMasked(sp.EXEC, i) {
-// 			continue
-// 		}
+	for i := 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
+		data := u.ReadOperand(state, inst.Data, i, nil)
+		addr := u.ReadOperand(state, inst.Addr, i, nil)
+		u.storageAccessor.Write(
+			pid, addr, insts.Uint32ToBytes(uint32(data)))
+	}
+}
 
-// 		u.storageAccessor.Write(
-// 			pid, sp.ADDR[i], insts.Uint32ToBytes(sp.DATA[i*4]))
-// 	}
-// }
+func (u *ALUImpl) runFlatStoreDWordX2(state InstEmuState) {
+	inst := state.Inst()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	pid := state.PID()
 
-// func (u *ALUImpl) runFlatStoreDWordX2(state InstEmuState) {
-// 	sp := state.Scratchpad().AsFlat()
-// 	pid := state.PID()
-// 	for i := uint(0); i < 64; i++ {
-// 		if !laneMasked(sp.EXEC, i) {
-// 			continue
-// 		}
+	for i := 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
+		data := u.ReadOperand(state, inst.Data, i, nil)
+		addr := u.ReadOperand(state, inst.Addr, i, nil)
 
-// 		buf := make([]byte, 8)
-// 		copy(buf[0:4], insts.Uint32ToBytes(sp.DATA[i*4]))
-// 		copy(buf[4:8], insts.Uint32ToBytes(sp.DATA[(i*4)+1]))
+		buf := make([]byte, 8)
+		copy(buf[0:4], insts.Uint32ToBytes(uint32(data)))
+		copy(buf[4:8], insts.Uint32ToBytes(uint32(data>>32)))
 
-// 		u.storageAccessor.Write(pid, sp.ADDR[i], buf)
-// 	}
-// }
+		u.storageAccessor.Write(pid, addr, buf)
+	}
+}
 
 // func (u *ALUImpl) runFlatStoreDWordX3(state InstEmuState) {
 // 	sp := state.Scratchpad().AsFlat()

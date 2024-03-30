@@ -50,18 +50,18 @@ func (c defaultCoalescer) mustBeAFlatLoadOrStore(
 func (c defaultCoalescer) generateReadReqs(
 	wf *wavefront.Wavefront,
 ) []*mem.ReadReq {
-	sp := wf.Scratchpad().AsFlat()
-	exec := sp.EXEC
-	addrs := sp.ADDR
+	inst := wf.DynamicInst()
+	exec := wf.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+
 	reqs := []*mem.ReadReq{}
 	regCount := c.instRegCount(wf.Inst())
 
-	for i := uint(0); i < 64; i++ {
-		if !laneMasked(exec, i) {
+	for i := 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
 			continue
 		}
 
-		addr := addrs[i]
+		addr := wf.ReadReg(inst.Addr.Register, 2, i)
 		for j := 0; j < regCount; j++ {
 			c.findOrCreateReadReq(&reqs, addr+uint64(4*j))
 		}
@@ -73,23 +73,34 @@ func (c defaultCoalescer) generateReadReqs(
 func (c defaultCoalescer) generateWriteReqs(
 	wf *wavefront.Wavefront,
 ) []*mem.WriteReq {
-	sp := wf.Scratchpad().AsFlat()
-	exec := sp.EXEC
-	addrs := sp.ADDR
+	inst := wf.DynamicInst()
+	exec := wf.ReadReg(insts.Regs[insts.EXEC], 1, 0)
 	reqs := []*mem.WriteReq{}
-	data := sp.DATA
 
-	for i := uint(0); i < 64; i++ {
-		if !laneMasked(exec, i) {
+	for i := 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
 			continue
 		}
 
-		addr := addrs[i]
+		addr := wf.ReadReg(inst.Addr.Register, 2, i)
 		regCount := uint(c.instRegCount(wf.Inst()))
-		for j := uint(0); j < regCount; j++ {
-			reqData := data[i*4+j]
-			c.findOrCreateWriteReq(&reqs, addr+uint64(j*4),
-				insts.Uint32ToBytes(reqData))
+		switch regCount {
+		case 1:
+			data := wf.ReadReg(inst.Data.Register, 1, i)
+			c.findOrCreateWriteReq(&reqs, addr,
+				insts.Uint32ToBytes(uint32(data)))
+		case 2:
+			data := wf.ReadReg(inst.Data.Register, 2, i)
+			c.findOrCreateWriteReq(&reqs, addr,
+				insts.Uint32ToBytes(uint32(data)))
+			c.findOrCreateWriteReq(&reqs, addr, insts.Uint32ToBytes(uint32(data>>32)))
+		default:
+			buf := make([]uint32, regCount)
+			wf.ReadReg4Plus(inst.Data.Register, int(regCount), i, buf)
+			for j := uint(0); j < regCount; j++ {
+				c.findOrCreateWriteReq(&reqs, addr+uint64(j*4),
+					insts.Uint32ToBytes(buf[j]))
+			}
 		}
 	}
 
@@ -205,9 +216,8 @@ func (c defaultCoalescer) addLaneInfo(
 	transaction *VectorMemAccessInfo,
 	wf *wavefront.Wavefront,
 ) {
-	sp := wf.Scratchpad().AsFlat()
-	exec := sp.EXEC
-	addrs := sp.ADDR
+	inst := wf.DynamicInst()
+	exec := wf.ReadReg(insts.Regs[insts.EXEC], 1, 0)
 	req := transaction.Read
 	regCount := c.instRegCount(wf.Inst())
 
@@ -217,7 +227,7 @@ func (c defaultCoalescer) addLaneInfo(
 		}
 
 		for j := 0; j < regCount; j++ {
-			addr := addrs[i] + uint64(j*4)
+			addr := wf.ReadReg(inst.Data.Register, 2, int(i)) + uint64(j*4)
 			reg := insts.VReg(wf.Inst().Dst.Register.RegIndex() + j)
 			if c.isInSameCacheLine(addr, req.Address) {
 				laneInfo := vectorMemAccessLaneInfo{
