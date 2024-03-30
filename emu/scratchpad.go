@@ -125,7 +125,7 @@ type SOPPLayout struct {
 	VCC  uint64
 }
 
-//SOPKLayout represents the scratchpad layout for SOPK instructions
+// SOPKLayout represents the scratchpad layout for SOPK instructions
 type SOPKLayout struct {
 	DST uint64
 	IMM uint64
