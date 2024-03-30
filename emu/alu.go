@@ -61,7 +61,7 @@ func (u *ALUImpl) ReadOperand(state InstEmuState, operand *insts.Operand, laneID
 		if operand.RegCount <= 2 {
 			value = state.ReadReg(operand.Register, operand.RegCount, laneID)
 		} else {
-			state.ReadReg4Plus(operand.Register, operand.RegCount, laneID, buf)
+			state.ReadReg2Plus(operand.Register, operand.RegCount, laneID, buf)
 			value = uint64(operand.RegCount)
 		}
 	case insts.IntOperand:
@@ -86,7 +86,7 @@ func (u *ALUImpl) WriteOperand(state InstEmuState, operand *insts.Operand, laneI
 	if operand.RegCount <= 2 {
 		state.WriteReg(operand.Register, operand.RegCount, laneID, data)
 	} else {
-		state.WriteReg4Plus(operand.Register, operand.RegCount, laneID, buf)
+		state.WriteReg2Plus(operand.Register, operand.RegCount, laneID, buf)
 	}
 }
 
