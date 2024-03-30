@@ -152,7 +152,7 @@ func (wf *Wavefront) WriteReg(reg *insts.Reg, regCount int, laneID int, data uin
 }
 
 // ReadReg4Plus return the raw register value when regCount > 2
-func (wf *Wavefront) ReadReg4Plus(reg *insts.Reg, regCount int, laneID int, buf []uint32) {
+func (wf *Wavefront) ReadReg2Plus(reg *insts.Reg, regCount int, laneID int, buf []uint32) {
 	if reg.IsSReg() {
 		copy(buf, wf.SRegFile[reg.RegIndex():reg.RegIndex()+regCount])
 	} else if reg.IsVReg() {
@@ -163,7 +163,7 @@ func (wf *Wavefront) ReadReg4Plus(reg *insts.Reg, regCount int, laneID int, buf 
 }
 
 // WriteReg4Plus write the raw register value when regCount > 2
-func (wf *Wavefront) WriteReg4Plus(reg *insts.Reg, regCount int, laneID int, buf []uint32) {
+func (wf *Wavefront) WriteReg2Plus(reg *insts.Reg, regCount int, laneID int, buf []uint32) {
 	if reg.IsSReg() {
 		copy(wf.SRegFile[reg.RegIndex():reg.RegIndex()+regCount], buf)
 	} else if reg.IsVReg() {

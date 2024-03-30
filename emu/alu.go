@@ -15,8 +15,8 @@ type InstEmuState interface {
 	Inst() *insts.Inst
 	ReadReg(reg *insts.Reg, regCount int, laneID int) uint64
 	WriteReg(reg *insts.Reg, regCount int, laneID int, data uint64)
-	ReadReg4Plus(reg *insts.Reg, regCount int, laneID int, buf []uint32)
-	WriteReg4Plus(reg *insts.Reg, regCount int, laneID int, buf []uint32)
+	ReadReg2Plus(reg *insts.Reg, regCount int, laneID int, buf []uint32)
+	WriteReg2Plus(reg *insts.Reg, regCount int, laneID int, buf []uint32)
 }
 
 // ALU does its jobs

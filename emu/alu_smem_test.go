@@ -113,7 +113,7 @@ var _ = Describe("ALU", func() {
 
 		alu.Run(wf)
 		results := make([]uint32, 4)
-		wf.ReadReg4Plus(insts.SReg(2), 4, 0, results)
+		wf.ReadReg2Plus(insts.SReg(2), 4, 0, results)
 
 		Expect(results[0]).To(Equal(uint32(217)))
 		Expect(results[1]).To(Equal(uint32(218)))
@@ -147,7 +147,7 @@ var _ = Describe("ALU", func() {
 
 		alu.Run(wf)
 		results := make([]uint32, 8)
-		wf.ReadReg4Plus(insts.SReg(2), 8, 0, results)
+		wf.ReadReg2Plus(insts.SReg(2), 8, 0, results)
 
 		Expect(results[0]).To(Equal(uint32(217)))
 		Expect(results[1]).To(Equal(uint32(218)))
