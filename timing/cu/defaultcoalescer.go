@@ -274,3 +274,7 @@ func (c defaultCoalescer) instRegCount(inst *insts.Inst) int {
 		panic("not supported opcode")
 	}
 }
+
+func laneMasked(Exec uint64, laneID uint) bool {
+	return Exec&(1<<laneID) > 0
+}
