@@ -246,3 +246,61 @@ func (d *DispatcherImpl) dispatchNextWG(
 
 	return false
 }
+
+// A DispatcherEmu is used in emu mode for dispatching work-groups
+type DispatcherEmu struct {
+	sim.HookableBase
+
+	cp               tracing.NamedHookable
+	name             string
+	respondingPort   sim.Port
+	dispatchingPort  sim.Port
+	cuPool           resource.CUResourcePool
+	gridBuilder      kernels.GridBuilder
+	dispatching      *protocol.LaunchKernelReq
+	numDispatchedWGs int
+	numCompletedWGs  int
+}
+
+// Name returns the name of the dispatcher
+func (d *DispatcherEmu) Name() string {
+	return d.name
+}
+
+// RegisterCU allows the dispatcher to dispatch work-groups to the CU.
+func (d *DispatcherEmu) RegisterCU(cu resource.DispatchableCU) {
+	d.cuPool.RegisterCU(cu)
+}
+
+// IsDispatching checks if the dispatcher is dispatching another kernel.
+func (d *DispatcherEmu) IsDispatching() bool {
+	return d.dispatching != nil
+}
+
+func (d *DispatcherEmu) mustNotBeDispatchingAnotherKernel() {
+	if d.IsDispatching() {
+		panic("dispatcher is dispatching another request")
+	}
+}
+
+// StartDispatching lets the dispatcher to start dispatch another kernel.
+func (d *DispatcherEmu) StartDispatching(req *protocol.LaunchKernelReq) {
+	d.mustNotBeDispatchingAnotherKernel()
+
+	d.gridBuilder.SetKernel(kernels.KernelLaunchInfo{
+		CodeObject: req.HsaCo,
+		Packet:     req.Packet,
+		PacketAddr: req.PacketAddress,
+		WGFilter:   req.WGFilter,
+	})
+	d.dispatching = req
+
+	d.numDispatchedWGs = 0
+	d.numCompletedWGs = 0
+
+	d.initializeProgressBar(req.ID)
+}
+
+func (d *DispatcherEmu) dispatchALLWG(now sim.VTimeInSec) (madeProgress bool) {
+
+}

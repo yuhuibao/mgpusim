@@ -137,3 +137,36 @@ func (p *CUResourcePoolImpl) countMustBeAMultipleOfGranularity(
 		panic("the count is not a multiple of the granularity")
 	}
 }
+
+// CUPoolImpl only cares about CU counts not its iternal resources
+type CUPoolImpl struct {
+	registeredCUs map[DispatchableCU]bool
+	cus           []DispatchableCU
+}
+
+// NewCUPool returns a CUPool
+func NewCUPool() *CUPoolImpl {
+	p := &CUPoolImpl{
+		registeredCUs: make(map[DispatchableCU]bool),
+	}
+	return p
+}
+
+// NumCU returns the total number of Compute Units.
+func (p *CUPoolImpl) NumCU() int {
+	return len(p.cus)
+}
+
+// GetCU returns the i-th CU.
+func (p *CUPoolImpl) GetCU(i int) DispatchableCU {
+	return p.cus[i]
+}
+
+// RegisterCU puts the CU's resources into the resource pool.
+func (p *CUPoolImpl) RegisterCU(cu DispatchableCU) {
+	if _, found := p.registeredCUs[cu]; found {
+		return
+	}
+	p.cus = append(p.cus, cu)
+	p.registeredCUs[cu] = true
+}
