@@ -258,8 +258,10 @@ type DispatcherEmu struct {
 	cuPool           resource.CUResourcePool
 	gridBuilder      kernels.GridBuilder
 	dispatching      *protocol.LaunchKernelReq
+	originalReqs     map[string]*protocol.MapWGReq
 	numDispatchedWGs int
 	numCompletedWGs  int
+	isDoneDispatch   bool
 }
 
 // Name returns the name of the dispatcher
@@ -298,7 +300,28 @@ func (d *DispatcherEmu) StartDispatching(req *protocol.LaunchKernelReq) {
 	d.numDispatchedWGs = 0
 	d.numCompletedWGs = 0
 
-	d.initializeProgressBar(req.ID)
+	// d.initializeProgressBar(req.ID)
+}
+
+// Tick updates the state of the dispatcher
+func (d *DispatcherEmu) Tick(now sim.VTimeInSec) (madeProgress bool) {
+	if d.dispatching != nil {
+		if !d.isDoneDispatch {
+			madeProgress = d.dispatchALLWG(now) || madeProgress
+		} else {
+			madeProgress = d.completeKernel(now) || madeProgress
+		}
+	}
+	madeProgress = d.processMessagesFromCU(now) || madeProgress
+
+	return madeProgress
+}
+
+func (d *DispatcherEmu) processMessagesFromCU(now sim.VTimeInSec) bool {
+	msg := d.dispatchingPort.Peek()
+	if msg == nil {
+		return false
+	}
 }
 
 func (d *DispatcherEmu) dispatchALLWG(now sim.VTimeInSec) (madeProgress bool) {
@@ -310,4 +333,26 @@ func (d *DispatcherEmu) dispatchALLWG(now sim.VTimeInSec) (madeProgress bool) {
 		wgReqCollection[cuID] = append(wgReqCollection[cuID], currWG)
 		cuID = (cuID + 1) % d.cuPool.NumCU()
 	}
+
+	for cuID, wgs := range wgReqCollection {
+		cuPort := d.cuPool.GetCU(cuID).DispatchingPort()
+		reqBuilder := protocol.MapWGReqBuilder{}.
+			WithSrc(d.dispatchingPort).
+			WithDst(cuPort).
+			WithSendTime(now).
+			WithPID(d.dispatching.PID).
+			WithWGs(wgs)
+
+		req := reqBuilder.Build()
+		err := d.dispatchingPort.Send(req)
+
+		if err == nil {
+			d.originalReqs[req.ID] = req
+		} else {
+			log.Panicf("Fail to send MapWGReq to dispatch WGs to CU#%d in emu\n", cuID)
+		}
+	}
+	d.isDoneDispatch = true
+	d.numDispatchedWGs = numWGs
+	return true
 }

@@ -30,10 +30,10 @@ type ComputeUnit struct {
 	alu                ALU
 	storageAccessor    *storageAccessor
 
-	nextTick    sim.VTimeInSec
-	queueingWGs []*protocol.MapWGReq
-	wfs         map[*kernels.WorkGroup][]*Wavefront
-	LDSStorage  []byte
+	nextTick   sim.VTimeInSec
+	currReq    *protocol.MapWGReq
+	wfs        map[*kernels.WorkGroup][]*Wavefront
+	LDSStorage []byte
 
 	GlobalMemStorage *mem.Storage
 
@@ -85,8 +85,8 @@ func (cu *ComputeUnit) Handle(evt sim.Event) error {
 		cu.TickingComponent.Handle(evt)
 	case *emulationEvent:
 		cu.runEmulation(evt)
-	case *WGCompleteEvent:
-		cu.handleWGCompleteEvent(evt)
+	// case *WGCompleteEvent:
+	// 	cu.handleWGCompleteEvent(evt)
 	default:
 		log.Panicf("cannot handle event %s", reflect.TypeOf(evt))
 	}
@@ -119,24 +119,37 @@ func (cu *ComputeUnit) processMapWGReq(now sim.VTimeInSec) {
 		cu.Engine.Schedule(evt)
 	}
 
-	cu.queueingWGs = append(cu.queueingWGs, req)
-	cu.wfs[req.WorkGroup] = make([]*Wavefront, 0, 64)
+	cu.currReq = req
+	for _, wg := range req.WorkGroups {
+		cu.wfs[wg] = make([]*Wavefront, 0, 64)
+	}
 }
 
 func (cu *ComputeUnit) runEmulation(evt *emulationEvent) error {
-	for len(cu.queueingWGs) > 0 {
-		wg := cu.queueingWGs[0]
-		cu.queueingWGs = cu.queueingWGs[1:]
-		cu.runWG(wg, evt.Time())
+	for _, wg := range cu.currReq.WorkGroups {
+		cu.runWG(cu.currReq, wg, evt.Time())
+	}
+	req := protocol.WGCompletionMsgBuilder{}.
+		WithSrc(cu.ToDispatcher).
+		WithDst(cu.currReq.Src).
+		WithSendTime(evt.Time()).
+		WithRspTo(cu.currReq.ID).
+		Build()
+
+	err := cu.ToDispatcher.Send(req)
+	if err == nil {
+		cu.finishedMapWGReqs = nil
+	} else {
+		log.Panic("Fail to send WGCompletion message in emu\n")
 	}
 	return nil
 }
 
 func (cu *ComputeUnit) runWG(
 	req *protocol.MapWGReq,
+	wg *kernels.WorkGroup,
 	now sim.VTimeInSec,
 ) error {
-	wg := req.WorkGroup
 	cu.initWfs(wg, req)
 
 	for !cu.isAllWfCompleted(wg) {
@@ -157,7 +170,7 @@ func (cu *ComputeUnit) initWfs(
 	wg *kernels.WorkGroup,
 	req *protocol.MapWGReq,
 ) error {
-	lds := cu.initLDS(wg, req)
+	lds := cu.initLDS(wg)
 
 	for _, wf := range wg.Wavefronts {
 		managedWf := NewWavefront(wf)
@@ -173,8 +186,8 @@ func (cu *ComputeUnit) initWfs(
 	return nil
 }
 
-func (cu *ComputeUnit) initLDS(wg *kernels.WorkGroup, req *protocol.MapWGReq) []byte {
-	ldsSize := req.WorkGroup.Packet.GroupSegmentSize
+func (cu *ComputeUnit) initLDS(wg *kernels.WorkGroup) []byte {
+	ldsSize := wg.Packet.GroupSegmentSize
 	lds := make([]byte, ldsSize)
 	return lds
 }
@@ -366,41 +379,41 @@ func (cu *ComputeUnit) resolveBarrier(wg *kernels.WorkGroup) {
 	}
 }
 
-func (cu *ComputeUnit) handleWGCompleteEvent(evt *WGCompleteEvent) error {
-	delete(cu.wfs, evt.Req.WorkGroup)
-	found := false
-	for _, r := range cu.finishedMapWGReqs {
-		if r == evt.Req.ID {
-			found = true
-			break
-		}
-	}
-	if !found {
-		cu.finishedMapWGReqs = append(cu.finishedMapWGReqs, evt.Req.ID)
-	}
+// func (cu *ComputeUnit) handleWGCompleteEvent(evt *WGCompleteEvent) error {
+// 	delete(cu.wfs, evt.Req.WorkGroup)
+// 	found := false
+// 	for _, r := range cu.finishedMapWGReqs {
+// 		if r == evt.Req.ID {
+// 			found = true
+// 			break
+// 		}
+// 	}
+// 	if !found {
+// 		cu.finishedMapWGReqs = append(cu.finishedMapWGReqs, evt.Req.ID)
+// 	}
 
-	if len(cu.wfs) != 0 {
-		return nil
-	}
+// 	if len(cu.wfs) != 0 {
+// 		return nil
+// 	}
 
-	req := protocol.WGCompletionMsgBuilder{}.
-		WithSrc(cu.ToDispatcher).
-		WithDst(evt.Req.Src).
-		WithSendTime(evt.Time()).
-		WithRspTo(cu.finishedMapWGReqs).
-		Build()
+// 	req := protocol.WGCompletionMsgBuilder{}.
+// 		WithSrc(cu.ToDispatcher).
+// 		WithDst(evt.Req.Src).
+// 		WithSendTime(evt.Time()).
+// 		WithRspTo(cu.finishedMapWGReqs).
+// 		Build()
 
-	err := cu.ToDispatcher.Send(req)
-	if err == nil {
-		cu.finishedMapWGReqs = nil
-	} else {
-		newEvent := NewWGCompleteEvent(cu.Freq.NextTick(evt.Time()),
-			cu, evt.Req)
-		cu.Engine.Schedule(newEvent)
-	}
+// 	err := cu.ToDispatcher.Send(req)
+// 	if err == nil {
+// 		cu.finishedMapWGReqs = nil
+// 	} else {
+// 		newEvent := NewWGCompleteEvent(cu.Freq.NextTick(evt.Time()),
+// 			cu, evt.Req)
+// 		cu.Engine.Schedule(newEvent)
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 // NewComputeUnit creates a new ComputeUnit with the given name
 func NewComputeUnit(
@@ -420,7 +433,6 @@ func NewComputeUnit(
 	cu.alu = alu
 	cu.storageAccessor = sAccessor
 
-	cu.queueingWGs = make([]*protocol.MapWGReq, 0)
 	cu.wfs = make(map[*kernels.WorkGroup][]*Wavefront)
 
 	cu.ToDispatcher = sim.NewLimitNumMsgPort(cu, 1, name+".ToDispatcher")
