@@ -313,7 +313,7 @@ func (cu *ComputeUnit) handleMapWGReq(
 	now sim.VTimeInSec,
 	req *protocol.MapWGReq,
 ) bool {
-	wg := cu.wrapWG(req.WorkGroup, req)
+	wg := cu.wrapWG(req.WorkGroups[0], req)
 
 	tracing.TraceReqReceive(req, cu)
 
@@ -370,10 +370,10 @@ func (cu *ComputeUnit) wrapWG(
 ) *wavefront.WorkGroup {
 	wg := wavefront.NewWorkGroup(raw, req)
 
-	lds := make([]byte, req.WorkGroup.Packet.GroupSegmentSize)
+	lds := make([]byte, req.WorkGroups[0].Packet.GroupSegmentSize)
 	wg.LDS = lds
 
-	for _, rawWf := range req.WorkGroup.Wavefronts {
+	for _, rawWf := range req.WorkGroups[0].Wavefronts {
 		wf := wavefront.NewWavefront(rawWf)
 		wg.Wfs = append(wg.Wfs, wf)
 		wf.WG = wg

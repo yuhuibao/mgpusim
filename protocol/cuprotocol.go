@@ -203,7 +203,7 @@ type WfDispatchLocation struct {
 // MapWGReq is a request that dispatches a work-group to a compute unit.
 type MapWGReq struct {
 	sim.MsgMeta
-	WorkGroup  *kernels.WorkGroup
+	WorkGroups []*kernels.WorkGroup
 	PID        vm.PID
 	Wavefronts []WfDispatchLocation
 }
@@ -218,7 +218,7 @@ type MapWGReqBuilder struct {
 	sendTime sim.VTimeInSec
 	src, dst sim.Port
 	pid      vm.PID
-	wg       *kernels.WorkGroup
+	wgs      []*kernels.WorkGroup
 	wfs      []WfDispatchLocation
 }
 
@@ -240,9 +240,15 @@ func (b MapWGReqBuilder) WithDst(dst sim.Port) MapWGReqBuilder {
 	return b
 }
 
-// WithWG sets the work-group to dispatch.
+// WithWG adds the work-group to dispatch.
 func (b MapWGReqBuilder) WithWG(wg *kernels.WorkGroup) MapWGReqBuilder {
-	b.wg = wg
+	b.wgs = append(b.wgs, wg)
+	return b
+}
+
+// WithWGs sets the work-groups to dispatch.
+func (b MapWGReqBuilder) WithWGs(wgs []*kernels.WorkGroup) MapWGReqBuilder {
+	b.wgs = wgs
 	return b
 }
 
@@ -266,7 +272,7 @@ func (b MapWGReqBuilder) Build() *MapWGReq {
 	r.Meta().Src = b.src
 	r.Meta().Dst = b.dst
 	r.PID = b.pid
-	r.WorkGroup = b.wg
+	r.WorkGroups = b.wgs
 	r.Wavefronts = b.wfs
 	return r
 }

@@ -302,5 +302,12 @@ func (d *DispatcherEmu) StartDispatching(req *protocol.LaunchKernelReq) {
 }
 
 func (d *DispatcherEmu) dispatchALLWG(now sim.VTimeInSec) (madeProgress bool) {
-
+	numWGs := d.gridBuilder.NumWG()
+	wgReqCollection := make(map[int][]*kernels.WorkGroup)
+	cuID := 0
+	for i := 0; i < numWGs; i++ {
+		currWG := d.gridBuilder.NextWG()
+		wgReqCollection[cuID] = append(wgReqCollection[cuID], currWG)
+		cuID = (cuID + 1) % d.cuPool.NumCU()
+	}
 }
