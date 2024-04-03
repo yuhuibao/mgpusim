@@ -121,36 +121,24 @@ func (d *DispatcherImpl) processMessagesFromCU(now sim.VTimeInSec) bool {
 
 	switch msg := msg.(type) {
 	case *protocol.WGCompletionMsg:
-		count := 0
-		for _, rspToID := range msg.RspTo {
-			_, ok := d.inflightWGs[rspToID]
-			if ok {
-				count += 1
-			}
-		}
-
-		if count == 0 {
+		location, ok := d.inflightWGs[msg.RspTo]
+		if !ok {
 			return false
-		} else if count < len(msg.RspTo) {
-			log.Panic("In emulation all finished WGs from more than one dispatcher")
 		}
 
-		for _, rspToID := range msg.RspTo {
-			location := d.inflightWGs[rspToID]
-			d.alg.FreeResources(location)
-			delete(d.inflightWGs, rspToID)
-			d.numCompletedWGs++
-			if d.numCompletedWGs == d.alg.NumWG() {
-				d.cycleLeft = d.constantKernelOverhead
-			}
+		d.alg.FreeResources(location)
+		delete(d.inflightWGs, msg.RspTo)
+		d.numCompletedWGs++
+		if d.numCompletedWGs == d.alg.NumWG() {
+			d.cycleLeft = d.constantKernelOverhead
+		}
 
-			originalReq := d.originalReqs[rspToID]
-			delete(d.originalReqs, rspToID)
-			tracing.TraceReqFinalize(originalReq, d)
+		originalReq := d.originalReqs[msg.RspTo]
+		delete(d.originalReqs, msg.RspTo)
+		tracing.TraceReqFinalize(originalReq, d)
 
-			if d.progressBar != nil {
-				d.progressBar.MoveInProgressToFinished(1)
-			}
+		if d.progressBar != nil {
+			d.progressBar.MoveInProgressToFinished(1)
 		}
 
 		d.dispatchingPort.Retrieve(now)
@@ -251,17 +239,17 @@ func (d *DispatcherImpl) dispatchNextWG(
 type DispatcherEmu struct {
 	sim.HookableBase
 
-	cp               tracing.NamedHookable
-	name             string
-	respondingPort   sim.Port
-	dispatchingPort  sim.Port
-	cuPool           resource.CUResourcePool
-	gridBuilder      kernels.GridBuilder
-	dispatching      *protocol.LaunchKernelReq
-	originalReqs     map[string]*protocol.MapWGReq
-	numDispatchedWGs int
-	numCompletedWGs  int
-	isDoneDispatch   bool
+	cp              tracing.NamedHookable
+	name            string
+	respondingPort  sim.Port
+	dispatchingPort sim.Port
+	cuPool          resource.CUResourcePool
+	gridBuilder     kernels.GridBuilder
+	dispatching     *protocol.LaunchKernelReq
+	originalReqs    map[string]*protocol.MapWGReq
+
+	isDoneDispatch bool
+	isCompletedExe bool
 }
 
 // Name returns the name of the dispatcher
@@ -297,8 +285,8 @@ func (d *DispatcherEmu) StartDispatching(req *protocol.LaunchKernelReq) {
 	})
 	d.dispatching = req
 
-	d.numDispatchedWGs = 0
-	d.numCompletedWGs = 0
+	d.isDoneDispatch = false
+	d.isCompletedExe = false
 
 	// d.initializeProgressBar(req.ID)
 }
@@ -308,7 +296,8 @@ func (d *DispatcherEmu) Tick(now sim.VTimeInSec) (madeProgress bool) {
 	if d.dispatching != nil {
 		if !d.isDoneDispatch {
 			madeProgress = d.dispatchALLWG(now) || madeProgress
-		} else {
+		}
+		if d.isCompletedExe {
 			madeProgress = d.completeKernel(now) || madeProgress
 		}
 	}
@@ -322,6 +311,45 @@ func (d *DispatcherEmu) processMessagesFromCU(now sim.VTimeInSec) bool {
 	if msg == nil {
 		return false
 	}
+
+	switch msg := msg.(type) {
+	case *protocol.WGCompletionMsg:
+		originalReq, ok := d.originalReqs[msg.RspTo]
+		if !ok {
+			return false
+		}
+		delete(d.originalReqs, msg.RspTo)
+		d.isCompletedExe = true
+
+		tracing.TraceReqFinalize(originalReq, d)
+
+		d.dispatchingPort.Retrieve(now)
+		return true
+	}
+	return false
+}
+
+func (d *DispatcherEmu) completeKernel(now sim.VTimeInSec) (
+	madeProgress bool,
+) {
+	req := d.dispatching
+
+	rsp := protocol.NewLaunchKernelRsp(now, req.Dst, req.Src, req.ID)
+
+	err := d.respondingPort.Send(rsp)
+	if err == nil {
+		d.dispatching = nil
+
+		// if d.monitor != nil {
+		// 	d.monitor.CompleteProgressBar(d.progressBar)
+		// }
+
+		tracing.TraceReqComplete(req, d.cp)
+
+		return true
+	}
+
+	return false
 }
 
 func (d *DispatcherEmu) dispatchALLWG(now sim.VTimeInSec) (madeProgress bool) {
@@ -348,11 +376,14 @@ func (d *DispatcherEmu) dispatchALLWG(now sim.VTimeInSec) (madeProgress bool) {
 
 		if err == nil {
 			d.originalReqs[req.ID] = req
+
+			tracing.TraceReqInitiate(req, d,
+				tracing.MsgIDAtReceiver(d.dispatching, d.cp))
 		} else {
 			log.Panicf("Fail to send MapWGReq to dispatch WGs to CU#%d in emu\n", cuID)
 		}
 	}
 	d.isDoneDispatch = true
-	d.numDispatchedWGs = numWGs
+
 	return true
 }
