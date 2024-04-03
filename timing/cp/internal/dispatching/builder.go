@@ -112,3 +112,17 @@ func (b Builder) Build(name string) Dispatcher {
 
 	return d
 }
+
+// BuildEmu creates a dispatcher
+func (b Builder) BuildEmu(name string) Dispatcher {
+	d := &DispatcherEmu{
+		name:            name,
+		cp:              b.cp,
+		respondingPort:  b.respondingPort,
+		dispatchingPort: b.dispatchingPort,
+		originalReqs:    make(map[string]*protocol.MapWGReq),
+		gridBuilder:     kernels.NewGridBuilder(),
+		cuPool:          b.cuResourcePool,
+	}
+	return d
+}

@@ -15,12 +15,13 @@ import (
 
 // Builder can build Command Processors
 type Builder struct {
-	freq           sim.Freq
-	engine         sim.Engine
-	visTracer      tracing.Tracer
-	monitor        *monitoring.Monitor
-	perfAnalyzer   *analysis.PerfAnalyzer
-	numDispatchers int
+	freq                 sim.Freq
+	engine               sim.Engine
+	visTracer            tracing.Tracer
+	monitor              *monitoring.Monitor
+	perfAnalyzer         *analysis.PerfAnalyzer
+	numDispatchers       int
+	isUsingEmuDispatcher bool
 }
 
 // MakeBuilder creates a new builder with default configuration values.
@@ -63,6 +64,11 @@ func (b Builder) WithPerfAnalyzer(
 	analyzer *analysis.PerfAnalyzer,
 ) Builder {
 	b.perfAnalyzer = analyzer
+	return b
+}
+
+func (b Builder) SetIsUsingEmuDispatcher() Builder {
+	b.isUsingEmuDispatcher = true
 	return b
 }
 
@@ -149,7 +155,12 @@ func (b *Builder) buildDispatchers(cp *CommandProcessor) {
 		WithMonitor(b.monitor)
 
 	for i := 0; i < b.numDispatchers; i++ {
-		disp := builder.Build(fmt.Sprintf("%s.Dispatcher%d", cp.Name(), i))
+		var disp dispatching.Dispatcher
+		if b.isUsingEmuDispatcher {
+			disp = builder.BuildEmu(fmt.Sprintf("%s.Dispatcher%d", cp.Name(), i))
+		} else {
+			disp = builder.Build(fmt.Sprintf("%s.Dispatcher%d", cp.Name(), i))
+		}
 
 		if b.visTracer != nil {
 			tracing.CollectTrace(disp, b.visTracer)

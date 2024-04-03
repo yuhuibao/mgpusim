@@ -283,8 +283,8 @@
             "mode": "debug",
             "program": "${workspaceFolder}/samples/relu",
             "args": [
-                "-timing",
-                "-length=64"
+                // "-timing",
+                // "-length=64"
             ]
         },
         {

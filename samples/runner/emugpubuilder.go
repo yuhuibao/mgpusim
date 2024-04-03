@@ -173,6 +173,7 @@ func (b *EmuGPUBuilder) buildMemory() {
 
 func (b *EmuGPUBuilder) buildGPU() {
 	b.commandProcessor = cp.MakeBuilder().
+		SetIsUsingEmuDispatcher().
 		WithEngine(b.engine).
 		WithFreq(1 * sim.GHz).
 		Build(b.gpuName + ".CommandProcessor")
