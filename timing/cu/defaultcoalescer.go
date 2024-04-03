@@ -96,7 +96,7 @@ func (c defaultCoalescer) generateWriteReqs(
 			c.findOrCreateWriteReq(&reqs, addr, insts.Uint32ToBytes(uint32(data>>32)))
 		default:
 			buf := make([]uint32, regCount)
-			wf.ReadReg4Plus(inst.Data.Register, int(regCount), i, buf)
+			wf.ReadReg2Plus(inst.Data.Register, int(regCount), i, buf)
 			for j := uint(0); j < regCount; j++ {
 				c.findOrCreateWriteReq(&reqs, addr+uint64(j*4),
 					insts.Uint32ToBytes(buf[j]))
