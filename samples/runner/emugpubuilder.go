@@ -194,7 +194,7 @@ func (b *EmuGPUBuilder) connectInternalComponents() {
 
 	connection.PlugIn(b.commandProcessor.ToDriver, 1)
 	connection.PlugIn(b.commandProcessor.ToDMA, 1)
-	connection.PlugIn(b.commandProcessor.ToCUs, 1)
+	connection.PlugIn(b.commandProcessor.ToCUs, 64)
 	connection.PlugIn(b.driver.GetPortByName("GPU"), 1)
 	connection.PlugIn(b.gpuMem.GetPortByName("Top"), 1)
 	connection.PlugIn(b.dmaEngine.ToCP, 1)

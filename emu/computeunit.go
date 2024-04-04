@@ -38,8 +38,6 @@ type ComputeUnit struct {
 	GlobalMemStorage *mem.Storage
 
 	ToDispatcher sim.Port
-
-	finishedMapWGReqs []string
 }
 
 // ControlPort returns the port that can receive controlling messages from the
@@ -137,9 +135,7 @@ func (cu *ComputeUnit) runEmulation(evt *emulationEvent) error {
 		Build()
 
 	err := cu.ToDispatcher.Send(req)
-	if err == nil {
-		cu.finishedMapWGReqs = nil
-	} else {
+	if err != nil {
 		log.Panic("Fail to send WGCompletion message in emu\n")
 	}
 	return nil
@@ -160,8 +156,8 @@ func (cu *ComputeUnit) runWG(
 		cu.resolveBarrier(wg)
 	}
 
-	evt := NewWGCompleteEvent(cu.Freq.NextTick(now), cu, req)
-	cu.Engine.Schedule(evt)
+	// evt := NewWGCompleteEvent(cu.Freq.NextTick(now), cu, req)
+	// cu.Engine.Schedule(evt)
 
 	return nil
 }
