@@ -1,80 +1,81 @@
 package emu
 
-// import (
-// 	"log"
-// 	"math"
-// )
+import (
+	"log"
 
-// //nolint:gocyclo,funlen
-// func (u *ALUImpl) runVOPC(state InstEmuState) {
-// 	inst := state.Inst()
-// 	switch inst.Opcode {
-// 	case 0x41: // v_cmp_lt_f32
-// 		u.runVCmpLtF32(state)
-// 	case 0x42: // v_cmp_eq_f32
-// 		u.runVCmpEqF32(state)
-// 	case 0x43: // v_cmp_le_f32
-// 		u.runVCmpLeF32(state)
-// 	case 0x44: // v_cmp_gt_f32
-// 		u.runVCmpGtF32(state)
-// 	case 0x45: // v_cmp_lg_f32
-// 		u.runVCmpLgF32(state)
-// 	case 0x46: // v_cmp_lg_f32
-// 		u.runVCmpGeF32(state)
-// 	case 0x49: // v_cmp_nge_f32
-// 		u.runVCmpNgeF32(state)
-// 	case 0x4A: // v_cmp_nlg_f32
-// 		u.runVCmpNlgF32(state)
-// 	case 0x4B: // v_cmp_ngt_f32
-// 		u.runVCmpNgtF32(state)
-// 	case 0x4C: // v_cmp_nle_f32
-// 		u.runVCmpNleF32(state)
-// 	case 0x4D: // v_cmp_neq_f32
-// 		u.runVCmpNeqF32(state)
-// 	case 0x4E: // v_cmp_nlt_f32
-// 		u.runVCmpNltF32(state)
-// 	case 0xC1: // v_cmp_lt_i32
-// 		u.runVCmpLtI32(state)
-// 	case 0xC3: // v_cmp_le_i32
-// 		u.runVCmpLeI32(state)
-// 	case 0xC4: // v_cmp_gt_i32
-// 		u.runVCmpGtI32(state)
-// 	case 0xC5: // v_cmp_lg_i32
-// 		u.runVCmpLgI32(state)
-// 	case 0xC6: // v_cmp_ge_i32
-// 		u.runVCmpGeI32(state)
-// 	case 0xC9: // v_cmp_lt_u32
-// 		u.runVCmpLtU32(state)
-// 	case 0xCA: // v_cmp_eq_u32
-// 		u.runVCmpEqU32(state)
-// 	case 0xCB: // v_cmp_le_u32
-// 		u.runVCmpLeU32(state)
-// 	case 0xCC: // v_cmp_gt_u32
-// 		u.runVCmpGtU32(state)
-// 	case 0xCD: // v_cmp_ne_u32
-// 		u.runVCmpNeU32(state)
-// 	case 0xCE: // v_cmp_ge_u32
-// 		u.runVCmpGeU32(state)
-// 	case 0xE8:
-// 		u.runVCmpFU64(state)
-// 	case 0xE9:
-// 		u.runVCmpLtU64(state)
-// 	case 0xEA:
-// 		u.runVCmpEqU64(state)
-// 	case 0xEB:
-// 		u.runVCmpLeU64(state)
-// 	case 0xEC:
-// 		u.runVCmpGtU64(state)
-// 	case 0xED:
-// 		u.runVCmpLgU64(state)
-// 	case 0xEE:
-// 		u.runVCmpGeU64(state)
-// 	case 0xEF:
-// 		u.runVCmpTruU64(state)
-// 	default:
-// 		log.Panicf("Opcode 0x%02X for VOPC format is not implemented", inst.Opcode)
-// 	}
-// }
+	"github.com/sarchlab/mgpusim/v3/insts"
+)
+
+//nolint:gocyclo,funlen
+func (u *ALUImpl) runVOPC(state InstEmuState) {
+	inst := state.Inst()
+	switch inst.Opcode {
+	// 	case 0x41: // v_cmp_lt_f32
+	// 		u.runVCmpLtF32(state)
+	// 	case 0x42: // v_cmp_eq_f32
+	// 		u.runVCmpEqF32(state)
+	// 	case 0x43: // v_cmp_le_f32
+	// 		u.runVCmpLeF32(state)
+	// 	case 0x44: // v_cmp_gt_f32
+	// 		u.runVCmpGtF32(state)
+	// 	case 0x45: // v_cmp_lg_f32
+	// 		u.runVCmpLgF32(state)
+	// 	case 0x46: // v_cmp_lg_f32
+	// 		u.runVCmpGeF32(state)
+	// 	case 0x49: // v_cmp_nge_f32
+	// 		u.runVCmpNgeF32(state)
+	// 	case 0x4A: // v_cmp_nlg_f32
+	// 		u.runVCmpNlgF32(state)
+	// 	case 0x4B: // v_cmp_ngt_f32
+	// 		u.runVCmpNgtF32(state)
+	// 	case 0x4C: // v_cmp_nle_f32
+	// 		u.runVCmpNleF32(state)
+	// 	case 0x4D: // v_cmp_neq_f32
+	// 		u.runVCmpNeqF32(state)
+	// 	case 0x4E: // v_cmp_nlt_f32
+	// 		u.runVCmpNltF32(state)
+	// 	case 0xC1: // v_cmp_lt_i32
+	// 		u.runVCmpLtI32(state)
+	// 	case 0xC3: // v_cmp_le_i32
+	// 		u.runVCmpLeI32(state)
+	case 0xC4: // v_cmp_gt_i32
+		u.runVCmpGtI32(state)
+	// 	case 0xC5: // v_cmp_lg_i32
+	// 		u.runVCmpLgI32(state)
+	// 	case 0xC6: // v_cmp_ge_i32
+	// 		u.runVCmpGeI32(state)
+	// 	case 0xC9: // v_cmp_lt_u32
+	// 		u.runVCmpLtU32(state)
+	// 	case 0xCA: // v_cmp_eq_u32
+	// 		u.runVCmpEqU32(state)
+	// 	case 0xCB: // v_cmp_le_u32
+	// 		u.runVCmpLeU32(state)
+	// 	case 0xCC: // v_cmp_gt_u32
+	// 		u.runVCmpGtU32(state)
+	// 	case 0xCD: // v_cmp_ne_u32
+	// 		u.runVCmpNeU32(state)
+	// 	case 0xCE: // v_cmp_ge_u32
+	// 		u.runVCmpGeU32(state)
+	// 	case 0xE8:
+	// 		u.runVCmpFU64(state)
+	// 	case 0xE9:
+	// 		u.runVCmpLtU64(state)
+	// 	case 0xEA:
+	// 		u.runVCmpEqU64(state)
+	// 	case 0xEB:
+	// 		u.runVCmpLeU64(state)
+	// 	case 0xEC:
+	// 		u.runVCmpGtU64(state)
+	// 	case 0xED:
+	// 		u.runVCmpLgU64(state)
+	// 	case 0xEE:
+	// 		u.runVCmpGeU64(state)
+	// 	case 0xEF:
+	// 		u.runVCmpTruU64(state)
+	default:
+		log.Panicf("Opcode 0x%02X for VOPC format is not implemented", inst.Opcode)
+	}
+}
 
 // func (u *ALUImpl) runVCmpLtF32(state InstEmuState) {
 // 	sp := state.Scratchpad().AsVOPC()
@@ -314,22 +315,47 @@ package emu
 // 	}
 // }
 
-// func (u *ALUImpl) runVCmpGtI32(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOPC()
-// 	sp.VCC = 0
-// 	var i uint
-// 	for i = 0; i < 64; i++ {
-// 		if !laneMasked(sp.EXEC, i) {
-// 			continue
-// 		}
+func (u *ALUImpl) runVCmpGtI32(state InstEmuState) {
+	inst := state.Inst()
+	state.WriteReg(insts.Regs[insts.VCC], 1, 0, 0)
 
-// 		src0 := asInt32(uint32(sp.SRC0[i]))
-// 		src1 := asInt32(uint32(sp.SRC1[i]))
-// 		if src0 > src1 {
-// 			sp.VCC = sp.VCC | (1 << i)
-// 		}
-// 	}
-// }
+	var i int
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	for i = 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
+
+		src0 := asInt32(uint32(u.ReadOperand(state, inst.Src0, i, nil)))
+		src1 := asInt32(uint32(u.ReadOperand(state, inst.Src1, i, nil)))
+		// 	src0 := asInt32(uint32(sp.SRC0[i]))
+		// 	src1 := asInt32(uint32(sp.SRC1[i]))
+		if src0 > src1 {
+			vcc := state.ReadReg(insts.Regs[insts.VCC], 1, i)
+			vcc |= 1 << i
+			state.WriteReg(insts.Regs[insts.VCC], 1, i, vcc)
+
+			// sp.VCC = sp.VCC | (1 << i)
+		}
+	}
+
+	// sp.DST[i] = uint64(src0 + src1)
+
+	// sp := state.Scratchpad().AsVOPC()
+	// sp.VCC = 0
+	// var i uint
+	// for i = 0; i < 64; i++ {
+	// 	if !laneMasked(sp.EXEC, i) {
+	// 		continue
+	// 	}
+
+	// 	src0 := asInt32(uint32(sp.SRC0[i]))
+	// 	src1 := asInt32(uint32(sp.SRC1[i]))
+	// 	if src0 > src1 {
+	// 		sp.VCC = sp.VCC | (1 << i)
+	// 	}
+	// }
+}
 
 // func (u *ALUImpl) runVCmpLgI32(state InstEmuState) {
 // 	sp := state.Scratchpad().AsVOPC()

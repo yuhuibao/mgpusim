@@ -13,18 +13,18 @@ func (u *ALUImpl) runFlat(state InstEmuState) {
 	switch inst.Opcode {
 	case 16:
 		u.runFlatLoadUByte(state)
-	// case 18:
-	// 	u.runFlatLoadUShort(state)
-	// case 20:
-	// 	u.runFlatLoadDWord(state)
+	case 18:
+		u.runFlatLoadUShort(state)
+	case 20:
+		u.runFlatLoadDWord(state)
 	// case 21:
 	// 	u.runFlatLoadDWordX2(state)
 	// case 23:
 	// 	u.runFlatLoadDWordX4(state)
-	// case 28:
-	// 	u.runFlatStoreDWord(state)
-	// case 29:
-	// 	u.runFlatStoreDWordX2(state)
+	case 28:
+		u.runFlatStoreDWord(state)
+	case 29:
+		u.runFlatStoreDWordX2(state)
 	// case 30:
 	// 	u.runFlatStoreDWordX3(state)
 	// case 31:

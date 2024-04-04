@@ -1,76 +1,80 @@
 package emu
 
-// import (
-// 	"fmt"
-// 	"log"
-// 	"math"
-// )
+import (
+	"log"
 
-// //nolint:gocyclo,funlen
-// func (u *ALUImpl) runVOP1(state InstEmuState) {
-// 	inst := state.Inst()
-// 	switch inst.Opcode {
-// 	case 1:
-// 		u.runVMOVB32(state)
-// 	case 2:
-// 		u.runVREADFIRSTLANEB32(state)
-// 	case 4:
-// 		u.runVCVTF64I32(state)
-// 	case 5:
-// 		u.runVCVTF32I32(state)
-// 	case 6:
-// 		u.runVCVTF32U32(state)
-// 	case 7:
-// 		u.runVCVTU32F32(state)
-// 	case 8:
-// 		u.runVCVTI32F32(state)
-// 	case 10:
-// 		u.runVCVTF16F32(state)
-// 	case 15:
-// 		u.runVCVTF32F64(state)
-// 	case 16:
-// 		u.runVCVTF64F32(state)
-// 	case 17:
-// 		u.runVCVTF32UBYTE0(state)
-// 	case 28:
-// 		u.runTRUNKF32(state)
-// 	case 30:
-// 		u.runRNDNEF32(state)
-// 	case 32:
-// 		u.runEXPF32(state)
-// 	case 33:
-// 		u.runLOGF32(state)
-// 	case 34, 35:
-// 		u.runVRCPIFLAGF32(state)
-// 	case 36:
-// 		u.runVRSQF32(state)
-// 	case 37:
-// 		u.runVRCPF64(state)
-// 	case 39:
-// 		u.runVSQRTF32(state)
-// 	case 43:
-// 		u.runVNOTB32(state)
-// 	case 44:
-// 		u.runBFREVB32(state)
-// 	case 76:
-// 		u.runLogLegacyF32(state)
+	"github.com/sarchlab/mgpusim/v3/insts"
+)
 
-// 	default:
-// 		log.Panicf("Opcode %d for VOP1 format is not implemented", inst.Opcode)
-// 	}
-// }
+//nolint:gocyclo,funlen
+func (u *ALUImpl) runVOP1(state InstEmuState) {
+	inst := state.Inst()
+	switch inst.Opcode {
+	case 1:
+		u.runVMOVB32(state)
+	// 	case 2:
+	// 		u.runVREADFIRSTLANEB32(state)
+	// 	case 4:
+	// 		u.runVCVTF64I32(state)
+	// 	case 5:
+	// 		u.runVCVTF32I32(state)
+	// 	case 6:
+	// 		u.runVCVTF32U32(state)
+	// 	case 7:
+	// 		u.runVCVTU32F32(state)
+	// 	case 8:
+	// 		u.runVCVTI32F32(state)
+	// 	case 10:
+	// 		u.runVCVTF16F32(state)
+	// 	case 15:
+	// 		u.runVCVTF32F64(state)
+	// 	case 16:
+	// 		u.runVCVTF64F32(state)
+	// 	case 17:
+	// 		u.runVCVTF32UBYTE0(state)
+	// 	case 28:
+	// 		u.runTRUNKF32(state)
+	// 	case 30:
+	// 		u.runRNDNEF32(state)
+	// 	case 32:
+	// 		u.runEXPF32(state)
+	// 	case 33:
+	// 		u.runLOGF32(state)
+	// 	case 34, 35:
+	// 		u.runVRCPIFLAGF32(state)
+	// 	case 36:
+	// 		u.runVRSQF32(state)
+	// 	case 37:
+	// 		u.runVRCPF64(state)
+	// 	case 39:
+	// 		u.runVSQRTF32(state)
+	// 	case 43:
+	// 		u.runVNOTB32(state)
+	// 	case 44:
+	// 		u.runBFREVB32(state)
+	// 	case 76:
+	// 		u.runLogLegacyF32(state)
 
-// func (u *ALUImpl) runVMOVB32(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOP1()
-// 	var i uint
-// 	for i = 0; i < 64; i++ {
-// 		if !laneMasked(sp.EXEC, i) {
-// 			continue
-// 		}
+	default:
+		log.Panicf("Opcode %d for VOP1 format is not implemented", inst.Opcode)
+	}
+}
 
-// 		sp.DST[i] = sp.SRC0[i]
-// 	}
-// }
+func (u *ALUImpl) runVMOVB32(state InstEmuState) {
+	// sp := state.Scratchpad().AsVOP1()
+	inst := state.Inst()
+	var i int
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	for i = 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
+		src0 := u.ReadOperand(state, inst.Src0, i, nil)
+		u.WriteOperand(state, inst.Dst, i, src0, nil)
+
+		// sp.DST[i] = sp.SRC0[i]
+	}
+}
 
 // func (u *ALUImpl) runVREADFIRSTLANEB32(state InstEmuState) {
 // 	sp := state.Scratchpad().AsVOP1()
