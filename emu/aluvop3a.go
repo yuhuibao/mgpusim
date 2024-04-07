@@ -655,10 +655,10 @@ func (u *ALUImpl) runVASHRREVI64(state InstEmuState) {
 			continue
 		}
 
-		src1 := u.ReadOperand(state, inst.Src0, i, nil)
+		src1 := u.ReadOperand(state, inst.Src1, i, nil)
 		src0 := u.ReadOperand(state, inst.Src0, i, nil)
 		// sp.DST[i] = int64ToBits(asInt64(sp.SRC1[i]) >> sp.SRC0[i])
-		u.WriteOperand(state, inst.Dst, i, uint64((asInt64(src1) >> int64(src0))), nil)
+		u.WriteOperand(state, inst.Dst, i, uint64(int64ToBits(asInt64(src1)>>int64(src0))), nil)
 	}
 }
 

@@ -63,7 +63,7 @@ var _ = Describe("ALU", func() {
 			wf.WriteReg(insts.VReg(0), 2, i, uint64(i*4))
 			storage.Write(uint64(i*4), insts.Uint32ToBytes(uint32(i)))
 		}
-		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0xffffffffffffffff)
+		wf.WriteReg(insts.Regs[insts.EXEC], 2, 0, 0xffffffffffffffff)
 
 		alu.Run(wf)
 
