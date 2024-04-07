@@ -722,7 +722,8 @@ func (u *ALUImpl) runVADDCU32(state InstEmuState) {
 			// sp.DST[i] = sp.SRC0[i] + sp.SRC1[i] + carry
 		}
 		// sp.VCC = newVCC
-		state.WriteReg(insts.Regs[insts.EXEC], 1, 0, newVCC)
+		// state.WriteReg(insts.Regs[insts.EXEC], 1, 0, newVCC)
+		state.WriteReg(insts.Regs[insts.VCC], 1, 0, newVCC)
 	} else {
 		log.Panicf("SDWA for VOP2 instruction opcode  %d not implemented \n", inst.Opcode)
 	}
