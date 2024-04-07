@@ -70,14 +70,14 @@ func (wf *Wavefront) ReadReg(reg *insts.Reg, regCount int, laneID int) uint64 {
 	// There are some concerns in terms of reading VCC and EXEC (64 or 32? And how to decide?)
 	var value uint64
 	if reg.IsSReg() {
-		if regCount == 1 {
+		if regCount <= 1 {
 			value = uint64(wf.SRegFile[reg.RegIndex()])
 		} else {
 			value = uint64(wf.SRegFile[reg.RegIndex()+1]) << 32
 			value |= uint64(wf.SRegFile[reg.RegIndex()])
 		}
 	} else if reg.IsVReg() {
-		if regCount == 1 {
+		if regCount <= 1 {
 			value = uint64(wf.VRegFile[laneID][reg.RegIndex()])
 		} else {
 			value = uint64(wf.VRegFile[laneID][reg.RegIndex()+1]) << 32
@@ -113,14 +113,14 @@ func (wf *Wavefront) ReadReg(reg *insts.Reg, regCount int, laneID int) uint64 {
 //nolint:gocyclo
 func (wf *Wavefront) WriteReg(reg *insts.Reg, regCount int, laneID int, data uint64) {
 	if reg.IsSReg() {
-		if regCount == 1 {
+		if regCount <= 1 {
 			wf.SRegFile[reg.RegIndex()] = uint32(data)
 		} else {
 			wf.SRegFile[reg.RegIndex()+1] = uint32(data >> 32)
 			wf.SRegFile[reg.RegIndex()] = uint32(data)
 		}
 	} else if reg.IsVReg() {
-		if regCount == 1 {
+		if regCount <= 1 {
 			wf.VRegFile[laneID][reg.RegIndex()] = uint32(data)
 		} else {
 			wf.VRegFile[laneID][reg.RegIndex()+1] = uint32(data >> 32)
