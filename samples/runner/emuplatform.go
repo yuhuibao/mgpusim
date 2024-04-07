@@ -2,6 +2,8 @@ package runner
 
 import (
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/sarchlab/akita/v3/mem/mem"
 	"github.com/sarchlab/akita/v3/mem/vm"
@@ -80,7 +82,7 @@ func (b EmuBuilder) Build() *Platform {
 	} else {
 		engine = sim.NewSerialEngine()
 	}
-	// engine.AcceptHook(sim.NewEventLogger(log.New(os.Stdout, "", 0)))
+	engine.AcceptHook(sim.NewEventLogger(log.New(os.Stdout, "", 0)))
 
 	storage := mem.NewStorage(uint64(b.numGPU+1) * 4 * mem.GB)
 	pageTable := vm.NewPageTable(b.log2PageSize)

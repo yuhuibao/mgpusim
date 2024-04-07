@@ -43,4 +43,6 @@ require (
 
 // replace github.com/sarchlab/akita/v3 => ../akita
 
+replace github.com/sarchlab/akita/v3 => ../../sarchlab/akita
+
 go 1.20
