@@ -29,12 +29,9 @@ var _ = Describe("ALU", func() {
 		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
 		wf.inst = inst
-		// sp := state.Scratchpad().AsVOP1()
 		for i := 0; i < 32; i++ {
-			// sp.SRC0[i] = 1
 			wf.WriteReg(insts.VReg(0), 1, i, uint64(i))
 		}
-		// sp.EXEC = 0x00000000ffffffff
 		wf.WriteReg(insts.Regs[insts.EXEC], 2, 0, 0x00000000ffffffff)
 
 		alu.Run(wf)
@@ -42,14 +39,12 @@ var _ = Describe("ALU", func() {
 		for i := 0; i < 32; i++ {
 			src0 := wf.ReadReg(insts.VReg(0), 1, i)
 			dst := wf.ReadReg(insts.VReg(2), 1, i)
-			// Expect(sp.SRC0[i]).To(Equal(sp.DST[i]))
 			Expect(src0).To(Equal(dst))
 		}
 
 		for i := 32; i < 64; i++ {
 			src0 := wf.ReadReg(insts.VReg(0), 1, i)
 			dst := wf.ReadReg(insts.VReg(2), 1, i)
-			// Expect(sp.SRC0[i]).To(Equal(uint64(0)))
 			Expect(src0).To(Equal(dst))
 		}
 	})

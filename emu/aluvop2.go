@@ -156,7 +156,6 @@ func (u *ALUImpl) runVADDF32(state InstEmuState) {
 // }
 
 func (u *ALUImpl) runVMULF32(state InstEmuState) {
-	// sp := state.Scratchpad().AsVOP2()
 	inst := state.Inst()
 	if !inst.IsSdwa {
 		var i int
@@ -166,12 +165,10 @@ func (u *ALUImpl) runVMULF32(state InstEmuState) {
 				continue
 			}
 
-			// src0 := math.Float32frombits(uint32(sp.SRC0[i]))
-			// src1 := math.Float32frombits(uint32(sp.SRC1[i]))
 			src0 := math.Float32frombits(uint32(u.ReadOperand(state, inst.Src0, i, nil)))
 			src1 := math.Float32frombits(uint32(u.ReadOperand(state, inst.Src1, i, nil)))
 			dst := src0 * src1
-			// sp.DST[i] = uint64(math.Float32bits(dst))
+
 			u.WriteOperand(state, inst.Dst, i, uint64(math.Float32bits(dst)), nil)
 		}
 	} else {
@@ -242,7 +239,6 @@ func (u *ALUImpl) runVMULF32(state InstEmuState) {
 // }
 
 func (u *ALUImpl) runVMAXF32(state InstEmuState) {
-	// sp := state.Scratchpad().AsVOP2()
 	inst := state.Inst()
 	if !inst.IsSdwa {
 		var i int
@@ -252,8 +248,6 @@ func (u *ALUImpl) runVMAXF32(state InstEmuState) {
 				continue
 			}
 
-			// src0 := math.Float32frombits(uint32(sp.SRC0[i]))
-			// src1 := math.Float32frombits(uint32(sp.SRC1[i]))
 			src0 := math.Float32frombits(uint32(u.ReadOperand(state, inst.Src0, i, nil)))
 			src1 := math.Float32frombits(uint32(u.ReadOperand(state, inst.Src1, i, nil)))
 
@@ -262,7 +256,6 @@ func (u *ALUImpl) runVMAXF32(state InstEmuState) {
 				dst = src1
 			}
 
-			// sp.DST[i] = uint64(math.Float32bits(dst))
 			u.WriteOperand(state, inst.Dst, i, uint64(math.Float32bits(dst)), nil)
 		}
 	} else {
@@ -549,7 +542,6 @@ func (u *ALUImpl) runVMAXF32(state InstEmuState) {
 // }
 
 func (u *ALUImpl) runVADDI32(state InstEmuState) {
-	// sp := state.Scratchpad().AsVOP2()
 	inst := state.Inst()
 	state.WriteReg(insts.Regs[insts.VCC], 1, 0, 0)
 	if inst.IsSdwa {
@@ -557,13 +549,6 @@ func (u *ALUImpl) runVADDI32(state InstEmuState) {
 	} else {
 		u.runVADDI32Regular(state)
 	}
-	// // sp.VCC = 0
-
-	// if inst.IsSdwa == true {
-	// 	u.runVADDI32SDWA(state)
-	// } else {
-	// 	u.runVADDI32Regular(state)
-	// }
 }
 
 func (u *ALUImpl) runVADDI32SDWA(state InstEmuState) {
@@ -587,29 +572,9 @@ func (u *ALUImpl) runVADDI32SDWA(state InstEmuState) {
 		result := int32ToBits((src0 + src1) & asInt32(uint32(inst.DstSel)))
 		u.WriteOperand(state, inst.Dst, i, uint64(result), nil)
 	}
-
-	// sp := state.Scratchpad().AsVOP2()
-	// inst := state.Inst()
-
-	// var i uint
-	// for i = 0; i < 64; i++ {
-	// 	if !laneMasked(sp.EXEC, i) {
-	// 		continue
-	// 	}
-
-	// 	src0 := asInt32(uint32(sp.SRC0[i]) & uint32(inst.Src0Sel))
-	// 	src1 := asInt32(uint32(sp.SRC1[i]) & uint32(inst.Src1Sel))
-	// 	if (src1 > 0 && src0 > math.MaxInt32-src1) ||
-	// 		(src1 < 0 && src0 < math.MinInt32+src1) {
-	// 		sp.VCC |= 1 << uint32(i)
-	// 	}
-	// 	result := int32ToBits((src0 + src1) & asInt32(uint32(inst.DstSel)))
-	// 	sp.DST[i] = uint64(result)
-	// }
 }
 
 func (u *ALUImpl) runVADDI32Regular(state InstEmuState) {
-	// sp := state.Scratchpad().AsVOP2()
 	inst := state.Inst()
 
 	var i int
@@ -619,30 +584,16 @@ func (u *ALUImpl) runVADDI32Regular(state InstEmuState) {
 			continue
 		}
 
-		// src0 := asInt32(uint32(sp.SRC0[i]))
-		// src1 := asInt32(uint32(sp.SRC1[i]))
-
-		// if (src1 > 0 && src0 > math.MaxInt32-src1) ||
-		// 	(src1 < 0 && src0 < math.MinInt32+src1) {
-		// 	sp.VCC |= 1 << uint32(i)
-		// }
-
-		// sp.DST[i] = uint64(int32ToBits(src0 + src1))
-
 		src0 := uint32(u.ReadOperand(state, inst.Src0, i, nil))
 		src1 := uint32(u.ReadOperand(state, inst.Src1, i, nil))
-		// src0 := uint32(sp.SRC0[i])
-		// src1 := uint32(sp.SRC1[i])
 
 		if uint64(src0)+uint64(src1) > 0xffffffff {
 			vcc := state.ReadReg(insts.Regs[insts.VCC], 1, i)
 			vcc |= 1 << uint32(i)
 			state.WriteReg(insts.Regs[insts.VCC], 1, i, vcc)
-			// sp.VCC |= 1 << uint32(i)
 		}
 
 		u.WriteOperand(state, inst.Dst, i, uint64(src0+src1), nil)
-		// sp.DST[i] = uint64(src0 + src1)
 	}
 }
 
@@ -697,7 +648,6 @@ func (u *ALUImpl) runVADDI32Regular(state InstEmuState) {
 // }
 
 func (u *ALUImpl) runVADDCU32(state InstEmuState) {
-	// sp := state.Scratchpad().AsVOP2()
 	newVCC := uint64(0)
 	inst := state.Inst()
 	var i int
@@ -719,10 +669,7 @@ func (u *ALUImpl) runVADDCU32(state InstEmuState) {
 			}
 			result := src0 + src1 + carry
 			u.WriteOperand(state, inst.Dst, i, result, nil)
-			// sp.DST[i] = sp.SRC0[i] + sp.SRC1[i] + carry
 		}
-		// sp.VCC = newVCC
-		// state.WriteReg(insts.Regs[insts.EXEC], 1, 0, newVCC)
 		state.WriteReg(insts.Regs[insts.VCC], 1, 0, newVCC)
 	} else {
 		log.Panicf("SDWA for VOP2 instruction opcode  %d not implemented \n", inst.Opcode)

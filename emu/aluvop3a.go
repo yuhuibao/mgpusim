@@ -109,16 +109,13 @@ func (u *ALUImpl) vop3aPreprocess(state InstEmuState) {
 
 func (u *ALUImpl) vop3aPreProcessAbs(state InstEmuState) {
 	inst := state.Inst()
-	// sp := state.Scratchpad().AsVOP3A()
 
 	if strings.Contains(inst.InstName, "F32") ||
 		strings.Contains(inst.InstName, "f32") {
 		if inst.Abs&0x1 != 0 {
 			for i := 0; i < 64; i++ {
 				src0 := math.Float32frombits(uint32(u.ReadOperand(state, inst.Src0, i, nil)))
-				// src0 := math.Float32frombits(uint32(sp.SRC0[i]))
 				src0 = float32(math.Abs(float64(src0)))
-				// sp.SRC0[i] = uint64(math.Float32bits(src0))
 				u.WriteOperand(state, inst.Src0, i, uint64(math.Float32bits(src0)), nil)
 			}
 		}
@@ -126,19 +123,15 @@ func (u *ALUImpl) vop3aPreProcessAbs(state InstEmuState) {
 		if inst.Abs&0x2 != 0 {
 			for i := 0; i < 64; i++ {
 				src1 := math.Float32frombits(uint32(u.ReadOperand(state, inst.Src1, i, nil)))
-				// src1 := math.Float32frombits(uint32(sp.SRC1[i]))
 				src1 = float32(math.Abs(float64(src1)))
-				// sp.SRC1[i] = uint64(math.Float32bits(src1))
 				u.WriteOperand(state, inst.Src1, i, uint64(math.Float32bits(src1)), nil)
 			}
 		}
 
 		if inst.Abs&0x4 != 0 {
 			for i := 0; i < 64; i++ {
-				// src2 := math.Float32frombits(uint32(sp.SRC2[i]))
 				src2 := math.Float32frombits(uint32(u.ReadOperand(state, inst.Src2, i, nil)))
 				src2 = float32(math.Abs(float64(src2)))
-				// sp.SRC2[i] = uint64(math.Float32bits(src2))
 				u.WriteOperand(state, inst.Src2, i, uint64(math.Float32bits(src2)), nil)
 			}
 		}
@@ -166,34 +159,26 @@ func (u *ALUImpl) vop3aPreProcessNeg(state InstEmuState) {
 
 func (u *ALUImpl) vop3aPreProcessF64Neg(state InstEmuState) {
 	inst := state.Inst()
-	// sp := state.Scratchpad().AsVOP3A()
-
 	if inst.Neg&0x1 != 0 {
 		for i := 0; i < 64; i++ {
-			// src0 := math.Float64frombits(sp.SRC0[i])
 			src0 := math.Float64frombits(u.ReadOperand(state, inst.Src0, i, nil))
 			src0 = src0 * (-1.0)
-			// sp.SRC0[i] = math.Float64bits(src0)
 			u.WriteOperand(state, inst.Dst, i, math.Float64bits(src0), nil)
 		}
 	}
 
 	if inst.Neg&0x2 != 0 {
 		for i := 0; i < 64; i++ {
-			// src1 := math.Float64frombits(sp.SRC1[i])
 			src1 := math.Float64frombits(u.ReadOperand(state, inst.Src1, i, nil))
 			src1 = src1 * (-1.0)
-			// sp.SRC1[i] = math.Float64bits(src1)
 			u.WriteOperand(state, inst.Dst, i, math.Float64bits(src1), nil)
 		}
 	}
 
 	if inst.Neg&0x4 != 0 {
 		for i := 0; i < 64; i++ {
-			// src2 := math.Float64frombits(sp.SRC2[i])
 			src2 := math.Float64frombits(u.ReadOperand(state, inst.Src2, i, nil))
 			src2 = src2 * (-1.0)
-			// sp.SRC2[i] = math.Float64bits(src2)
 			u.WriteOperand(state, inst.Dst, i, math.Float64bits(src2), nil)
 		}
 	}
@@ -201,33 +186,26 @@ func (u *ALUImpl) vop3aPreProcessF64Neg(state InstEmuState) {
 
 func (u *ALUImpl) vop3aPreProcessF32Neg(state InstEmuState) {
 	inst := state.Inst()
-	// sp := state.Scratchpad().AsVOP3A()
 	if inst.Neg&0x1 != 0 {
 		for i := 0; i < 64; i++ {
 			src0 := math.Float32frombits(uint32(u.ReadOperand(state, inst.Src0, i, nil)))
-			// src0 := math.Float32frombits(uint32(sp.SRC0[i]))
 			src0 = src0 * (-1.0)
-			// sp.SRC0[i] = uint64(math.Float32bits(src0))
 			u.WriteOperand(state, inst.Dst, i, uint64(math.Float32bits(src0)), nil)
 		}
 	}
 
 	if inst.Neg&0x2 != 0 {
 		for i := 0; i < 64; i++ {
-			// src1 := math.Float32frombits(uint32(sp.SRC1[i]))
 			src1 := math.Float32frombits(uint32(u.ReadOperand(state, inst.Src1, i, nil)))
 			src1 = src1 * (-1.0)
-			// sp.SRC1[i] = uint64(math.Float32bits(src1))
 			u.WriteOperand(state, inst.Dst, i, uint64(math.Float32bits(src1)), nil)
 		}
 	}
 
 	if inst.Neg&0x4 != 0 {
 		for i := 0; i < 64; i++ {
-			// src2 := math.Float32frombits(uint32(sp.SRC2[i]))
 			src2 := math.Float32frombits(uint32(u.ReadOperand(state, inst.Src2, i, nil)))
 			src2 = src2 * (-1.0)
-			// sp.SRC2[i] = uint64(math.Float32bits(src2))
 			u.WriteOperand(state, inst.Dst, i, uint64(math.Float32bits(src2)), nil)
 		}
 	}
@@ -235,33 +213,26 @@ func (u *ALUImpl) vop3aPreProcessF32Neg(state InstEmuState) {
 
 func (u *ALUImpl) vop3aPreProcessB32Neg(state InstEmuState) {
 	inst := state.Inst()
-	// sp := state.Scratchpad().AsVOP3A()
 	if inst.Neg&0x1 != 0 {
 		for i := 0; i < 64; i++ {
-			// src0 := asInt32(uint32(sp.SRC0[i]))
 			src0 := asInt32(uint32(u.ReadOperand(state, inst.Src0, i, nil)))
 			src0 = src0 * (-1.0)
-			// sp.SRC0[i] = uint64(int32ToBits(src0))
 			u.WriteOperand(state, inst.Dst, i, uint64(int32ToBits(src0)), nil)
 		}
 	}
 
 	if inst.Neg&0x2 != 0 {
 		for i := 0; i < 64; i++ {
-			// src1 := asInt32(uint32(sp.SRC1[i]))
 			src1 := asInt32(uint32(u.ReadOperand(state, inst.Src1, i, nil)))
 			src1 = src1 * (-1.0)
-			// sp.SRC1[i] = uint64(int32ToBits(src1))
 			u.WriteOperand(state, inst.Dst, i, uint64(int32ToBits(src1)), nil)
 		}
 	}
 
 	if inst.Neg&0x4 != 0 {
 		for i := 0; i < 64; i++ {
-			// src2 := asInt32(uint32(sp.SRC2[i]))
 			src2 := asInt32(uint32(u.ReadOperand(state, inst.Src2, i, nil)))
 			src2 = src2 * (-1.0)
-			// sp.SRC2[i] = uint64(int32ToBits(src2))
 			u.WriteOperand(state, inst.Dst, i, uint64(int32ToBits(src2)), nil)
 		}
 	}
@@ -645,7 +616,6 @@ func (u *ALUImpl) vop3aPostprocess(state InstEmuState) {
 // }
 
 func (u *ALUImpl) runVASHRREVI64(state InstEmuState) {
-	// sp := state.Scratchpad().AsVOP3A()
 	inst := state.Inst()
 	var i int
 	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
@@ -657,7 +627,6 @@ func (u *ALUImpl) runVASHRREVI64(state InstEmuState) {
 
 		src1 := u.ReadOperand(state, inst.Src1, i, nil)
 		src0 := u.ReadOperand(state, inst.Src0, i, nil)
-		// sp.DST[i] = int64ToBits(asInt64(sp.SRC1[i]) >> sp.SRC0[i])
 		u.WriteOperand(state, inst.Dst, i, uint64(int64ToBits(asInt64(src1)>>int64(src0))), nil)
 	}
 }

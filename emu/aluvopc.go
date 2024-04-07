@@ -328,33 +328,12 @@ func (u *ALUImpl) runVCmpGtI32(state InstEmuState) {
 
 		src0 := asInt32(uint32(u.ReadOperand(state, inst.Src0, i, nil)))
 		src1 := asInt32(uint32(u.ReadOperand(state, inst.Src1, i, nil)))
-		// 	src0 := asInt32(uint32(sp.SRC0[i]))
-		// 	src1 := asInt32(uint32(sp.SRC1[i]))
 		if src0 > src1 {
 			vcc := state.ReadReg(insts.Regs[insts.VCC], 1, i)
 			vcc |= 1 << i
 			state.WriteReg(insts.Regs[insts.VCC], 1, i, vcc)
-
-			// sp.VCC = sp.VCC | (1 << i)
 		}
 	}
-
-	// sp.DST[i] = uint64(src0 + src1)
-
-	// sp := state.Scratchpad().AsVOPC()
-	// sp.VCC = 0
-	// var i uint
-	// for i = 0; i < 64; i++ {
-	// 	if !laneMasked(sp.EXEC, i) {
-	// 		continue
-	// 	}
-
-	// 	src0 := asInt32(uint32(sp.SRC0[i]))
-	// 	src1 := asInt32(uint32(sp.SRC1[i]))
-	// 	if src0 > src1 {
-	// 		sp.VCC = sp.VCC | (1 << i)
-	// 	}
-	// }
 }
 
 // func (u *ALUImpl) runVCmpLgI32(state InstEmuState) {

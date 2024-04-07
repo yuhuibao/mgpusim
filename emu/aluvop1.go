@@ -61,7 +61,6 @@ func (u *ALUImpl) runVOP1(state InstEmuState) {
 }
 
 func (u *ALUImpl) runVMOVB32(state InstEmuState) {
-	// sp := state.Scratchpad().AsVOP1()
 	inst := state.Inst()
 	var i int
 	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
@@ -71,8 +70,6 @@ func (u *ALUImpl) runVMOVB32(state InstEmuState) {
 		}
 		src0 := u.ReadOperand(state, inst.Src0, i, nil)
 		u.WriteOperand(state, inst.Dst, i, src0, nil)
-
-		// sp.DST[i] = sp.SRC0[i]
 	}
 }
 
