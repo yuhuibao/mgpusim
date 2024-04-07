@@ -56,7 +56,7 @@ var _ = Describe("ALU", func() {
 		inst.FormatType = insts.FLAT
 		inst.Opcode = 16
 		inst.Addr = insts.NewVRegOperand(0, 0, 2)
-		inst.Data = insts.NewVRegOperand(2, 2, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 		wf.inst = inst
 
 		for i := 0; i < 64; i++ {

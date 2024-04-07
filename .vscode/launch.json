@@ -290,7 +290,7 @@
             "mode": "debug",
             "program": "${workspaceFolder}/samples/relu",
             "args": [
-                "-timing",
+                // "-timing",
                 "-length=64"
             ]
         },

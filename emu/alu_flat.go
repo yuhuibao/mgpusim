@@ -50,7 +50,7 @@ func (u *ALUImpl) runFlatLoadUByte(state InstEmuState) {
 		buf[2] = 0
 		buf[3] = 0
 
-		u.WriteOperand(state, inst.Data, i, uint64(insts.BytesToUint32(buf)), nil)
+		u.WriteOperand(state, inst.Dst, i, uint64(insts.BytesToUint32(buf)), nil)
 	}
 }
 
@@ -70,7 +70,7 @@ func (u *ALUImpl) runFlatLoadUShort(state InstEmuState) {
 		buf[2] = 0
 		buf[3] = 0
 
-		u.WriteOperand(state, inst.Data, i, uint64(insts.BytesToUint32(buf)), nil)
+		u.WriteOperand(state, inst.Dst, i, uint64(insts.BytesToUint32(buf)), nil)
 	}
 }
 
@@ -86,7 +86,7 @@ func (u *ALUImpl) runFlatLoadDWord(state InstEmuState) {
 		addr := u.ReadOperand(state, inst.Addr, i, nil)
 
 		buf := u.storageAccessor.Read(pid, addr, uint64(4))
-		u.WriteOperand(state, inst.Data, i, uint64(insts.BytesToUint32(buf)), nil)
+		u.WriteOperand(state, inst.Dst, i, uint64(insts.BytesToUint32(buf)), nil)
 	}
 }
 

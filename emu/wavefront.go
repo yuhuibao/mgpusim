@@ -66,7 +66,6 @@ func (wf *Wavefront) VRegValue(lane int, i int) uint32 {
 //
 //nolint:gocyclo
 func (wf *Wavefront) ReadReg(reg *insts.Reg, regCount int, laneID int) uint64 {
-
 	// There are some concerns in terms of reading VCC and EXEC (64 or 32? And how to decide?)
 	var value uint64
 	if reg.IsSReg() {
@@ -151,7 +150,7 @@ func (wf *Wavefront) WriteReg(reg *insts.Reg, regCount int, laneID int, data uin
 	}
 }
 
-// ReadReg4Plus return the raw register value when regCount > 2
+// ReadReg2Plus return the raw register value when regCount > 2
 func (wf *Wavefront) ReadReg2Plus(reg *insts.Reg, regCount int, laneID int, buf []uint32) {
 	if reg.IsSReg() {
 		copy(buf, wf.SRegFile[reg.RegIndex():reg.RegIndex()+regCount])
@@ -162,7 +161,7 @@ func (wf *Wavefront) ReadReg2Plus(reg *insts.Reg, regCount int, laneID int, buf 
 	}
 }
 
-// WriteReg4Plus write the raw register value when regCount > 2
+// WriteReg2Plus write the raw register value when regCount > 2
 func (wf *Wavefront) WriteReg2Plus(reg *insts.Reg, regCount int, laneID int, buf []uint32) {
 	if reg.IsSReg() {
 		copy(wf.SRegFile[reg.RegIndex():reg.RegIndex()+regCount], buf)
