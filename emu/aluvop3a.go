@@ -85,8 +85,8 @@ func (u *ALUImpl) runVOP3A(state InstEmuState) {
 	// 		u.runVMULLOU32(state)
 	// 	case 646:
 	// 		u.runVMULHIU32(state)
-	// 	case 655:
-	// 		u.runVLSHLREVB64(state)
+	case 655:
+		u.runVLSHLREVB64(state)
 	case 657:
 		u.runVASHRREVI64(state)
 	default:
@@ -602,18 +602,20 @@ func (u *ALUImpl) vop3aPostprocess(state InstEmuState) {
 // 	}
 // }
 
-// func (u *ALUImpl) runVLSHLREVB64(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOP3A()
+func (u *ALUImpl) runVLSHLREVB64(state InstEmuState) {
+	inst := state.Inst()
+	var i int
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	for i = 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
 
-// 	var i uint
-// 	for i = 0; i < 64; i++ {
-// 		if !laneMasked(sp.EXEC, i) {
-// 			continue
-// 		}
-
-// 		sp.DST[i] = sp.SRC1[i] << sp.SRC0[i]
-// 	}
-// }
+		src1 := u.ReadOperand(state, inst.Src1, i, nil)
+		src0 := u.ReadOperand(state, inst.Src0, i, nil)
+		u.WriteOperand(state, inst.Dst, i, src1<<src0, nil)
+	}
+}
 
 func (u *ALUImpl) runVASHRREVI64(state InstEmuState) {
 	inst := state.Inst()

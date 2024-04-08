@@ -571,20 +571,24 @@ var _ = Describe("ALU", func() {
 
 	// 	})
 
-	// 	It("should run V_LSHLREV_B64", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP3a
-	// 		state.inst.Opcode = 655
+	It("should run V_LSHLREV_B64", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP3a
+		inst.Opcode = 655
+		inst.Src0 = insts.NewVRegOperand(0, 0, 2)
+		inst.Src1 = insts.NewVRegOperand(2, 2, 2)
+		inst.Dst = insts.NewVRegOperand(4, 4, 2)
 
-	// 		sp := state.Scratchpad().AsVOP3A()
-	// 		sp.SRC1[0] = uint64(0x0000000000010000)
-	// 		sp.SRC0[0] = uint64(3)
-	// 		sp.EXEC = 0x1
+		wf.inst = inst
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0x1)
+		wf.WriteReg(insts.VReg(2), 2, 0, uint64(0x0000000000010000))
+		wf.WriteReg(insts.VReg(0), 2, 0, uint64(3))
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0x1)
 
-	// 		alu.Run(state)
-
-	// 		Expect(sp.DST[0]).To(Equal(uint64(0x0000000000080000)))
-	// 	})
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.VReg(4), 2, 0)
+		Expect(dst).To(Equal(uint64(0x0000000000080000)))
+	})
 
 	It("should run V_ASHRREV_I64", func() {
 		inst := insts.NewInst()
