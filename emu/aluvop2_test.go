@@ -22,24 +22,26 @@ var _ = Describe("ALU", func() {
 		wf = NewWavefront(rawWf)
 	})
 
-	// 	It("should run V_CNDMASK_B32", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP2
-	// 		state.inst.Opcode = 0
+	It("should run V_CNDMASK_B32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP2
+		inst.Opcode = 0
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		sp := state.Scratchpad().AsVOP2()
-	// 		sp.VCC = 1
-	// 		sp.SRC0[0] = 1
-	// 		sp.SRC0[1] = 2
-	// 		sp.SRC1[0] = 3
-	// 		sp.SRC1[1] = 4
-	// 		sp.EXEC = 3
+		wf.inst = inst
+		wf.WriteReg(insts.VReg(0), 1, 0, 1)
+		wf.WriteReg(insts.VReg(0), 1, 1, 2)
+		wf.WriteReg(insts.VReg(1), 1, 0, 3)
+		wf.WriteReg(insts.VReg(1), 1, 1, 4)
+		wf.WriteReg(insts.Regs[insts.VCC], 1, 0, 1)
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 3)
 
-	// 		alu.Run(state)
-
-	// 		Expect(sp.DST[0]).To(Equal(uint64(3)))
-	// 		Expect(sp.DST[1]).To(Equal(uint64(2)))
-	// 	})
+		alu.Run(wf)
+		Expect(wf.ReadReg(insts.VReg(2), 1, 0)).To(Equal(uint64(3)))
+		Expect(wf.ReadReg(insts.VReg(2), 1, 1)).To(Equal(uint64(2)))
+	})
 
 	It("should run V_ADD_F32", func() {
 		inst := insts.NewInst()
@@ -412,21 +414,24 @@ var _ = Describe("ALU", func() {
 	// 		Expect(uint32(sp.DST[0])).To(Equal(uint32(0x008a0000)))
 	// 	})
 
-	// 	It("should run V_MAC_F32", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP2
-	// 		state.inst.Opcode = 22
+	It("should run V_MAC_F32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP2
+		inst.Opcode = 22
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		sp := state.Scratchpad().AsVOP2()
-	// 		sp.SRC0[0] = uint64(float32ToBits(4))
-	// 		sp.SRC1[0] = uint64(float32ToBits(16))
-	// 		sp.DST[0] = uint64(float32ToBits(1024))
-	// 		sp.EXEC = 1
+		wf.inst = inst
+		wf.WriteReg(insts.VReg(0), 1, 0, uint64(float32ToBits(4)))
+		wf.WriteReg(insts.VReg(1), 1, 0, uint64(float32ToBits(16)))
+		wf.WriteReg(insts.VReg(2), 1, 0, uint64(float32ToBits(1024)))
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 1)
 
-	// 		alu.Run(state)
-
-	// 		Expect(asFloat32(uint32(sp.DST[0]))).To(Equal(float32(1024.0 + 16.0*4.0)))
-	// 	})
+		alu.Run(wf)
+		result := wf.ReadReg(insts.VReg(2), 1, 0)
+		Expect(asFloat32(uint32(result))).To(Equal(float32(1024.0 + 16.0*4.0)))
+	})
 
 	// 	It("should run V_MADAK_F32", func() {
 	// 		state.inst = insts.NewInst()
