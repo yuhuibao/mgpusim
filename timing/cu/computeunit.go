@@ -45,8 +45,6 @@ type ComputeUnit struct {
 	ScalarUnit       SubComponent
 	SIMDUnit         []SubComponent
 	LDSUnit          SubComponent
-	SRegFile         RegisterFile
-	VRegFile         []RegisterFile
 
 	InstMem          sim.Port
 	ScalarMem        sim.Port
