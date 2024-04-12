@@ -282,20 +282,24 @@ var _ = Describe("ALU", func() {
 	// 		Expect(uint32(sp.DST[0])).To(Equal(uint32(0x02)))
 	// 	})
 
-	// 	It("should run V_ASHRREV_I32", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP2
-	// 		state.inst.Opcode = 17
+	It("should run V_ASHRREV_I32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP2
+		inst.Opcode = 17
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		sp := state.Scratchpad().AsVOP2()
-	// 		sp.SRC0[0] = 97
-	// 		sp.SRC1[0] = uint64(int32ToBits(-64))
-	// 		sp.EXEC = 1
+		wf.inst = inst
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 1)
+		wf.WriteReg(insts.VReg(0), 1, 0, 97)
+		wf.WriteReg(insts.VReg(1), 1, 0, uint64(int32ToBits(-64)))
 
-	// 		alu.Run(state)
-	// 		Expect(asInt32(uint32(sp.DST[0]))).To(Equal(int32(-32)))
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.VReg(2), 1, 0)
+		Expect(asInt32(uint32(dst))).To(Equal(int32(-32)))
 
-	// 	})
+	})
 
 	// 	It("should run V_LSHLREV_B32", func() {
 	// 		state.inst = insts.NewInst()

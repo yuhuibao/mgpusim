@@ -41,8 +41,8 @@ func (u *ALUImpl) runVOP2(state InstEmuState) {
 		// 		u.runVMAXU32(state)
 		// 	case 16:
 		// 		u.runVLSHRREVB32(state)
-		// 	case 17:
-		// 		u.runVASHRREVI32(state)
+	case 17:
+		u.runVASHRREVI32(state)
 		// 	case 18:
 		// 		u.runVLSHLREVB32(state)
 		// 	case 19:
@@ -369,24 +369,24 @@ func (u *ALUImpl) runVMAXF32(state InstEmuState) {
 // 	}
 // }
 
-// func (u *ALUImpl) runVASHRREVI32(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOP2()
-// 	inst := state.Inst()
-// 	if inst.IsSdwa == false {
-// 		var i uint
-// 		for i = 0; i < 64; i++ {
-// 			if !laneMasked(sp.EXEC, i) {
-// 				continue
-// 			}
-// 			src0 := uint32(sp.SRC0[i])
-// 			src1 := int32(sp.SRC1[i])
-// 			dst := src1 >> (src0 & 0x1f)
-// 			sp.DST[i] = uint64(dst)
-// 		}
-// 	} else {
-// 		log.Panicf("SDWA for VOP2 instruction opcode  %d not implemented \n", inst.Opcode)
-// 	}
-// }
+func (u *ALUImpl) runVASHRREVI32(state InstEmuState) {
+	inst := state.Inst()
+	if !inst.IsSdwa {
+		var i int
+		exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+		for i = 0; i < 64; i++ {
+			if !laneMasked(exec, uint(i)) {
+				continue
+			}
+			src0 := uint32(u.ReadOperand(state, inst.Src0, i, nil))
+			src1 := int32(u.ReadOperand(state, inst.Src1, i, nil))
+			dst := src1 >> (src0 & 0x1f)
+			u.WriteOperand(state, inst.Dst, i, uint64(dst), nil)
+		}
+	} else {
+		log.Panicf("SDWA for VOP2 instruction opcode  %d not implemented \n", inst.Opcode)
+	}
+}
 
 // func (u *ALUImpl) runVLSHLREVB32(state InstEmuState) {
 // 	sp := state.Scratchpad().AsVOP2()
