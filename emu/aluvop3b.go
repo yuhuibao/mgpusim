@@ -1,53 +1,66 @@
 package emu
 
-// import (
-// 	"log"
-// 	"math"
-// )
+import (
+	"log"
 
-// func (u *ALUImpl) runVOP3B(state InstEmuState) {
-// 	inst := state.Inst()
+	"github.com/sarchlab/mgpusim/v3/insts"
+)
 
-// 	u.vop3aPreprocess(state)
+func (u *ALUImpl) runVOP3B(state InstEmuState) {
+	inst := state.Inst()
 
-// 	switch inst.Opcode {
-// 	case 281:
-// 		u.runVADDU32VOP3b(state)
-// 	case 282:
-// 		u.runVSUBU32VOP3b(state)
-// 	case 283:
-// 		u.runVSUBREVU32VOP3b(state)
-// 	case 284:
-// 		u.runVADDCU32VOP3b(state)
-// 	case 285:
-// 		u.runVSUBBU32VOP3b(state)
-// 	case 286:
-// 		u.runVSUBBREVU32VOP3b(state)
-// 	case 481:
-// 		u.runVDIVSCALEF64(state)
-// 	default:
-// 		log.Panicf("Opcode %d for VOP3b format is not implemented", inst.Opcode)
-// 	}
+	u.vop3aPreprocess(state)
 
-// 	u.vop3aPostprocess(state)
-// }
+	switch inst.Opcode {
+	case 281:
+		u.runVADDU32VOP3b(state)
+		// 	case 282:
+		// 		u.runVSUBU32VOP3b(state)
+		// 	case 283:
+		// 		u.runVSUBREVU32VOP3b(state)
+	case 284:
+		u.runVADDCU32VOP3b(state)
+	// 	case 285:
+	// 		u.runVSUBBU32VOP3b(state)
+	// 	case 286:
+	// 		u.runVSUBBREVU32VOP3b(state)
+	// 	case 481:
+	// 		u.runVDIVSCALEF64(state)
+	default:
+		log.Panicf("Opcode %d for VOP3b format is not implemented", inst.Opcode)
+	}
 
-// func (u *ALUImpl) runVADDU32VOP3b(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOP3B()
+	u.vop3aPostprocess(state)
+}
 
-// 	var i uint
-// 	for i = 0; i < 64; i++ {
-// 		if !laneMasked(sp.EXEC, i) {
-// 			continue
-// 		}
+func (u *ALUImpl) runVADDU32VOP3b(state InstEmuState) {
+	// sp := state.Scratchpad().AsVOP3B()
+	inst := state.Inst()
+	var i int
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	for i = 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
 
-// 		sp.DST[i] = sp.SRC0[i] + sp.SRC1[i]
-// 		if sp.DST[i] > 0xffffffff {
-// 			sp.SDST |= 1 << i
-// 			sp.DST[i] &= 0xffffffff
-// 		}
-// 	}
-// }
+		src1 := u.ReadOperand(state, inst.Src1, i, nil)
+		src0 := u.ReadOperand(state, inst.Src0, i, nil)
+		dst := src1 + src0
+		u.WriteOperand(state, inst.Dst, i, dst, nil)
+
+		// sp.DST[i] = sp.SRC0[i] + sp.SRC1[i]
+		if dst > 0xffffffff {
+			sdst := u.ReadOperand(state, inst.SDst, 0, nil)
+			sdst |= 1 << i
+			u.WriteOperand(state, inst.SDst, 0, sdst, nil)
+
+			dst &= 0xffffffff
+			u.WriteOperand(state, inst.Dst, i, dst, nil)
+			// sp.SDST |= 1 << i
+			// sp.DST[i] &= 0xffffffff
+		}
+	}
+}
 
 // func (u *ALUImpl) runVSUBU32VOP3b(state InstEmuState) {
 // 	sp := state.Scratchpad().AsVOP3B()
@@ -83,24 +96,34 @@ package emu
 // 	}
 // }
 
-// func (u *ALUImpl) runVADDCU32VOP3b(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOP3B()
+func (u *ALUImpl) runVADDCU32VOP3b(state InstEmuState) {
 
-// 	var i uint
-// 	for i = 0; i < 64; i++ {
-// 		if !laneMasked(sp.EXEC, i) {
-// 			continue
-// 		}
+	inst := state.Inst()
+	var i int
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	for i = 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
 
-// 		sp.DST[i] = sp.SRC0[i] + sp.SRC1[i] + ((sp.SRC2[i] & (1 << i)) >> i)
-// 		carry := uint64(0)
-// 		if sp.DST[i] > 0xffffffff {
-// 			carry = 1
-// 		}
-// 		sp.SDST |= carry << i
-// 		sp.DST[i] &= 0xffffffff
-// 	}
-// }
+		src2 := u.ReadOperand(state, inst.Src2, i, nil)
+		src1 := u.ReadOperand(state, inst.Src1, i, nil)
+		src0 := u.ReadOperand(state, inst.Src0, i, nil)
+
+		dst := src0 + src1 + ((src2 & (1 << i)) >> i)
+		u.WriteOperand(state, inst.Dst, i, dst, nil)
+
+		carry := uint64(0)
+		if dst > 0xffffffff {
+			carry = 1
+		}
+		sdst := u.ReadOperand(state, inst.SDst, i, nil)
+		sdst |= carry << i
+		dst &= 0xffffffff
+		u.WriteOperand(state, inst.SDst, i, sdst, nil)
+		u.WriteOperand(state, inst.Dst, i, dst, nil)
+	}
+}
 
 // func (u *ALUImpl) runVSUBBU32VOP3b(state InstEmuState) {
 // 	sp := state.Scratchpad().AsVOP3B()

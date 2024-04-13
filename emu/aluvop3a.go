@@ -25,64 +25,64 @@ func (u *ALUImpl) runVOP3A(state InstEmuState) {
 	// 		u.runVCmpLtI32VOP3a(state)
 	// 	case 195: // 0xC3
 	// 		u.runVCmpLeI32VOP3a(state)
-	// 	case 196: // 0xC4
-	// 		u.runVCmpGtI32VOP3a(state)
-	// 	case 198: // 0xC6
-	// 		u.runVCmpGEI32VOP3a(state)
-	// 	case 201: // 0xC9
-	// 		u.runVCmpLtU32VOP3a(state)
-	// 	case 202: // 0xCA
-	// 		u.runVCmpEqU32VOP3a(state)
-	// 	case 203: // 0xCB
-	// 		u.runVCmpLeU32VOP3a(state)
-	// 	case 204: // 0xCC
-	// 		u.runVCmpGtU32VOP3a(state)
-	// 	case 205: // 0xCD
-	// 		u.runVCmpLgU32VOP3a(state)
-	// 	case 206: // 0xCE
-	// 		u.runVCmpGeU32VOP3a(state)
-	// 	case 233: // 0xE9
-	// 		u.runVCmpLtU64VOP3a(state)
-	// 	case 256:
-	// 		u.runVCNDMASKB32VOP3a(state)
-	// 	case 258:
-	// 		u.runVSUBF32VOP3a(state)
-	// 	case 449:
-	// 		u.runVMADF32(state)
-	// 	case 450:
-	// 		u.runVMADI32I24(state)
-	// 	case 451, 488:
-	// 		u.runVMADU64U32(state)
-	// 	case 460:
-	// 		u.runVFMAF64(state)
-	// 	case 464:
-	// 		u.runVMIN3F32(state)
-	// 	case 465:
-	// 		u.runVMIN3I32(state)
-	// 	case 466:
-	// 		u.runVMIN3U32(state)
-	// 	case 467:
-	// 		u.runVMAX3F32(state)
-	// 	case 468:
-	// 		u.runVMAX3I32(state)
-	// 	case 469:
-	// 		u.runVMAX3U32(state)
-	// 	case 470:
-	// 		u.runVMED3F32(state)
-	// 	case 471:
-	// 		u.runVMED3I32(state)
-	// 	case 472:
-	// 		u.runVMED3U32(state)
-	// 	case 479:
-	// 		u.runVDIVFIXUPF64(state)
-	// 	case 483:
-	// 		u.runVDIVFMASF64(state)
-	// 	case 640:
-	// 		u.runVADDF64(state)
-	// 	case 641:
-	// 		u.runVMULF64(state)
-	// 	case 645:
-	// 		u.runVMULLOU32(state)
+	case 196: // 0xC4
+		u.runVCmpGtI32VOP3a(state)
+		// 	case 198: // 0xC6
+		// 		u.runVCmpGEI32VOP3a(state)
+		// 	case 201: // 0xC9
+		// 		u.runVCmpLtU32VOP3a(state)
+		// 	case 202: // 0xCA
+		// 		u.runVCmpEqU32VOP3a(state)
+		// 	case 203: // 0xCB
+		// 		u.runVCmpLeU32VOP3a(state)
+		// 	case 204: // 0xCC
+		// 		u.runVCmpGtU32VOP3a(state)
+		// 	case 205: // 0xCD
+		// 		u.runVCmpLgU32VOP3a(state)
+		// 	case 206: // 0xCE
+		// 		u.runVCmpGeU32VOP3a(state)
+		// 	case 233: // 0xE9
+		// 		u.runVCmpLtU64VOP3a(state)
+		// 	case 256:
+		// 		u.runVCNDMASKB32VOP3a(state)
+		// 	case 258:
+		// 		u.runVSUBF32VOP3a(state)
+		// 	case 449:
+		// 		u.runVMADF32(state)
+		// 	case 450:
+		// 		u.runVMADI32I24(state)
+		// 	case 451, 488:
+		// 		u.runVMADU64U32(state)
+		// 	case 460:
+		// 		u.runVFMAF64(state)
+		// 	case 464:
+		// 		u.runVMIN3F32(state)
+		// 	case 465:
+		// 		u.runVMIN3I32(state)
+		// 	case 466:
+		// 		u.runVMIN3U32(state)
+		// 	case 467:
+		// 		u.runVMAX3F32(state)
+		// 	case 468:
+		// 		u.runVMAX3I32(state)
+		// 	case 469:
+		// 		u.runVMAX3U32(state)
+		// 	case 470:
+		// 		u.runVMED3F32(state)
+		// 	case 471:
+		// 		u.runVMED3I32(state)
+		// 	case 472:
+		// 		u.runVMED3U32(state)
+		// 	case 479:
+		// 		u.runVDIVFIXUPF64(state)
+		// 	case 483:
+		// 		u.runVDIVFMASF64(state)
+		// 	case 640:
+		// 		u.runVADDF64(state)
+		// 	case 641:
+		// 		u.runVMULF64(state)
+	case 645:
+		u.runVMULLOU32(state)
 	// 	case 646:
 	// 		u.runVMULHIU32(state)
 	case 655:
@@ -333,23 +333,27 @@ func (u *ALUImpl) vop3aPostprocess(state InstEmuState) {
 // 	}
 // }
 
-// func (u *ALUImpl) runVCmpGtI32VOP3a(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOP3A()
+func (u *ALUImpl) runVCmpGtI32VOP3a(state InstEmuState) {
+	// sp := state.Scratchpad().AsVOP3A()
+	inst := state.Inst()
 
-// 	var i uint
-// 	for i = 0; i < 64; i++ {
-// 		if !laneMasked(sp.EXEC, i) {
-// 			continue
-// 		}
+	var i int
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	for i = 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
 
-// 		src0 := asInt32(uint32(sp.SRC0[i]))
-// 		src1 := asInt32(uint32(sp.SRC1[i]))
+		src1 := asInt32(uint32(u.ReadOperand(state, inst.Src1, i, nil)))
+		src0 := asInt32(uint32(u.ReadOperand(state, inst.Src0, i, nil)))
 
-// 		if src0 > src1 {
-// 			sp.DST[0] |= (1 << i)
-// 		}
-// 	}
-// }
+		if src0 > src1 {
+			dst := u.ReadOperand(state, inst.Dst, 0, nil)
+			dst |= (1 << i)
+			u.WriteOperand(state, inst.Dst, 0, dst, nil)
+		}
+	}
+}
 
 // func (u *ALUImpl) runVCmpGEI32VOP3a(state InstEmuState) {
 // 	sp := state.Scratchpad().AsVOP3A()
@@ -576,18 +580,21 @@ func (u *ALUImpl) vop3aPostprocess(state InstEmuState) {
 // 	}
 // }
 
-// func (u *ALUImpl) runVMULLOU32(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOP3A()
+func (u *ALUImpl) runVMULLOU32(state InstEmuState) {
+	inst := state.Inst()
 
-// 	var i uint
-// 	for i = 0; i < 64; i++ {
-// 		if !laneMasked(sp.EXEC, i) {
-// 			continue
-// 		}
+	var i int
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	for i = 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
 
-// 		sp.DST[i] = (sp.SRC0[i] * sp.SRC1[i])
-// 	}
-// }
+		src1 := u.ReadOperand(state, inst.Src1, i, nil)
+		src0 := u.ReadOperand(state, inst.Src0, i, nil)
+		u.WriteOperand(state, inst.Dst, i, src0*src1, nil)
+	}
+}
 
 // func (u *ALUImpl) runVMULHIU32(state InstEmuState) {
 // 	sp := state.Scratchpad().AsVOP3A()
