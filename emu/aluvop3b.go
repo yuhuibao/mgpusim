@@ -34,7 +34,6 @@ func (u *ALUImpl) runVOP3B(state InstEmuState) {
 }
 
 func (u *ALUImpl) runVADDU32VOP3b(state InstEmuState) {
-	// sp := state.Scratchpad().AsVOP3B()
 	inst := state.Inst()
 	var i int
 	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
@@ -47,8 +46,6 @@ func (u *ALUImpl) runVADDU32VOP3b(state InstEmuState) {
 		src1 := u.ReadOperand(state, inst.Src1, i, nil)
 		src0 := u.ReadOperand(state, inst.Src0, i, nil)
 		dst := src1 + src0
-
-		// sp.DST[i] = sp.SRC0[i] + sp.SRC1[i]
 
 		if dst > 0xffffffff {
 			sdst |= 1 << i
@@ -99,6 +96,7 @@ func (u *ALUImpl) runVADDCU32VOP3b(state InstEmuState) {
 	inst := state.Inst()
 	var i int
 	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	sdst := uint64(0)
 	for i = 0; i < 64; i++ {
 		if !laneMasked(exec, uint(i)) {
 			continue
@@ -115,12 +113,11 @@ func (u *ALUImpl) runVADDCU32VOP3b(state InstEmuState) {
 		if dst > 0xffffffff {
 			carry = 1
 		}
-		sdst := u.ReadOperand(state, inst.SDst, i, nil)
 		sdst |= carry << i
 		dst &= 0xffffffff
-		u.WriteOperand(state, inst.SDst, i, sdst, nil)
 		u.WriteOperand(state, inst.Dst, i, dst, nil)
 	}
+	u.WriteOperand(state, inst.SDst, 0, sdst, nil)
 }
 
 // func (u *ALUImpl) runVSUBBU32VOP3b(state InstEmuState) {

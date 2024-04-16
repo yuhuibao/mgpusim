@@ -334,11 +334,11 @@ func (u *ALUImpl) vop3aPostprocess(state InstEmuState) {
 // }
 
 func (u *ALUImpl) runVCmpGtI32VOP3a(state InstEmuState) {
-	// sp := state.Scratchpad().AsVOP3A()
 	inst := state.Inst()
 
 	var i int
 	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	dst := uint64(0)
 	for i = 0; i < 64; i++ {
 		if !laneMasked(exec, uint(i)) {
 			continue
@@ -348,11 +348,10 @@ func (u *ALUImpl) runVCmpGtI32VOP3a(state InstEmuState) {
 		src0 := asInt32(uint32(u.ReadOperand(state, inst.Src0, i, nil)))
 
 		if src0 > src1 {
-			dst := u.ReadOperand(state, inst.Dst, 0, nil)
 			dst |= (1 << i)
-			u.WriteOperand(state, inst.Dst, 0, dst, nil)
 		}
 	}
+	u.WriteOperand(state, inst.Dst, 0, dst, nil)
 }
 
 // func (u *ALUImpl) runVCmpGEI32VOP3a(state InstEmuState) {

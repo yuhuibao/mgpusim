@@ -317,9 +317,10 @@ func (u *ALUImpl) runVOPC(state InstEmuState) {
 
 func (u *ALUImpl) runVCmpGtI32(state InstEmuState) {
 	inst := state.Inst()
-	state.WriteReg(insts.Regs[insts.VCC], 1, 0, 0)
+	// state.WriteReg(insts.Regs[insts.VCC], 1, 0, 0)
 
 	var i int
+	vcc := uint64(0)
 	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
 	for i = 0; i < 64; i++ {
 		if !laneMasked(exec, uint(i)) {
@@ -329,11 +330,11 @@ func (u *ALUImpl) runVCmpGtI32(state InstEmuState) {
 		src0 := asInt32(uint32(u.ReadOperand(state, inst.Src0, i, nil)))
 		src1 := asInt32(uint32(u.ReadOperand(state, inst.Src1, i, nil)))
 		if src0 > src1 {
-			vcc := state.ReadReg(insts.Regs[insts.VCC], 1, i)
 			vcc |= 1 << i
-			state.WriteReg(insts.Regs[insts.VCC], 1, i, vcc)
 		}
+
 	}
+	state.WriteReg(insts.Regs[insts.VCC], 1, 0, vcc)
 }
 
 // func (u *ALUImpl) runVCmpLgI32(state InstEmuState) {
@@ -389,6 +390,7 @@ func (u *ALUImpl) runVCmpEqU32(state InstEmuState) {
 	inst := state.Inst()
 	state.WriteReg(insts.Regs[insts.VCC], 1, 0, 0)
 	var i int
+	vcc := uint64(0)
 	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
 	for i = 0; i < 64; i++ {
 		if !laneMasked(exec, uint(i)) {
@@ -398,11 +400,10 @@ func (u *ALUImpl) runVCmpEqU32(state InstEmuState) {
 		src0 := u.ReadOperand(state, inst.Src0, i, nil)
 		src1 := u.ReadOperand(state, inst.Src1, i, nil)
 		if uint32(src0) == uint32(src1) {
-			vcc := state.ReadReg(insts.Regs[insts.VCC], 1, 0)
 			vcc |= 1 << i
-			state.WriteReg(insts.Regs[insts.VCC], 1, 0, vcc)
 		}
 	}
+	state.WriteReg(insts.Regs[insts.VCC], 1, 0, vcc)
 }
 
 // func (u *ALUImpl) runVCmpLeU32(state InstEmuState) {
@@ -422,6 +423,7 @@ func (u *ALUImpl) runVCmpGtU32(state InstEmuState) {
 	inst := state.Inst()
 	state.WriteReg(insts.Regs[insts.VCC], 1, 0, 0)
 	var i int
+	vcc := uint64(0)
 	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
 	for i = 0; i < 64; i++ {
 		if !laneMasked(exec, uint(i)) {
@@ -431,11 +433,10 @@ func (u *ALUImpl) runVCmpGtU32(state InstEmuState) {
 		src0 := u.ReadOperand(state, inst.Src0, i, nil)
 		src1 := u.ReadOperand(state, inst.Src1, i, nil)
 		if src0 > src1 {
-			vcc := state.ReadReg(insts.Regs[insts.VCC], 1, 0)
 			vcc |= 1 << i
-			state.WriteReg(insts.Regs[insts.VCC], 1, 0, vcc)
 		}
 	}
+	state.WriteReg(insts.Regs[insts.VCC], 1, 0, vcc)
 }
 
 // func (u *ALUImpl) runVCmpNeU32(state InstEmuState) {
