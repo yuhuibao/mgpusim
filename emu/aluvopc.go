@@ -34,8 +34,8 @@ func (u *ALUImpl) runVOPC(state InstEmuState) {
 	// 		u.runVCmpNeqF32(state)
 	// 	case 0x4E: // v_cmp_nlt_f32
 	// 		u.runVCmpNltF32(state)
-	// 	case 0xC1: // v_cmp_lt_i32
-	// 		u.runVCmpLtI32(state)
+	case 0xC1: // v_cmp_lt_i32
+		u.runVCmpLtI32(state)
 	// 	case 0xC3: // v_cmp_le_i32
 	// 		u.runVCmpLeI32(state)
 	case 0xC4: // v_cmp_gt_i32
@@ -281,22 +281,24 @@ func (u *ALUImpl) runVOPC(state InstEmuState) {
 // 	}
 // }
 
-// func (u *ALUImpl) runVCmpLtI32(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOPC()
-// 	sp.VCC = 0
-// 	var i uint
-// 	for i = 0; i < 64; i++ {
-// 		if !laneMasked(sp.EXEC, i) {
-// 			continue
-// 		}
+func (u *ALUImpl) runVCmpLtI32(state InstEmuState) {
+	inst := state.Inst()
+	vcc := uint64(0)
+	var i int
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	for i = 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
 
-// 		src0 := asInt32(uint32(sp.SRC0[i]))
-// 		src1 := asInt32(uint32(sp.SRC1[i]))
-// 		if src0 < src1 {
-// 			sp.VCC = sp.VCC | (1 << i)
-// 		}
-// 	}
-// }
+		src0 := asInt32(uint32(u.ReadOperand(state, inst.Src0, i, nil)))
+		src1 := asInt32(uint32(u.ReadOperand(state, inst.Src1, i, nil)))
+		if src0 < src1 {
+			vcc |= 1 << i
+		}
+	}
+	state.WriteReg(insts.Regs[insts.VCC], 1, 0, vcc)
+}
 
 // func (u *ALUImpl) runVCmpLeI32(state InstEmuState) {
 // 	sp := state.Scratchpad().AsVOPC()

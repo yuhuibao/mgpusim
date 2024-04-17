@@ -248,26 +248,39 @@ var _ = Describe("ALU", func() {
 	// 		Expect(sp.VCC).To(Equal(uint64(0x5)))
 	// 	})
 
-	// 	It("should run v_cmp_lt_i32", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOPC
-	// 		state.inst.Opcode = 0xC1
+	It("should run v_cmp_lt_i32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOPC
+		inst.Opcode = 0xC1
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
 
-	// 		sp := state.Scratchpad().AsVOPC()
-	// 		sp.EXEC = 0xF
-	// 		sp.SRC0[0] = 1
-	// 		sp.SRC0[1] = uint64(int32ToBits(-1))
-	// 		sp.SRC0[2] = 1
-	// 		sp.SRC0[3] = 1
-	// 		sp.SRC1[0] = 1
-	// 		sp.SRC1[1] = uint64(int32ToBits(-2))
-	// 		sp.SRC1[2] = 0
-	// 		sp.SRC1[3] = 2
+		wf.inst = inst
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0xF)
+		wf.WriteReg(insts.VReg(0), 1, 0, 1)
+		wf.WriteReg(insts.VReg(0), 1, 1, uint64(int32ToBits(-1)))
+		wf.WriteReg(insts.VReg(0), 1, 2, 1)
+		wf.WriteReg(insts.VReg(0), 1, 3, 1)
+		wf.WriteReg(insts.VReg(1), 1, 0, 1)
+		wf.WriteReg(insts.VReg(1), 1, 1, uint64(int32ToBits(-2)))
+		wf.WriteReg(insts.VReg(1), 1, 2, 0)
+		wf.WriteReg(insts.VReg(1), 1, 3, 2)
 
-	// 		alu.Run(state)
+		// sp := state.Scratchpad().AsVOPC()
+		// sp.EXEC = 0xF
+		// sp.SRC0[0] = 1
+		// sp.SRC0[1] = uint64(int32ToBits(-1))
+		// sp.SRC0[2] = 1
+		// sp.SRC0[3] = 1
+		// sp.SRC1[0] = 1
+		// sp.SRC1[1] = uint64(int32ToBits(-2))
+		// sp.SRC1[2] = 0
+		// sp.SRC1[3] = 2
 
-	// 		Expect(sp.VCC).To(Equal(uint64(0x8)))
-	// 	})
+		alu.Run(wf)
+		vcc := wf.ReadReg(insts.Regs[insts.VCC], 1, 0)
+		Expect(vcc).To(Equal(uint64(0x8)))
+	})
 
 	// 	It("should run v_cmp_le_i32", func() {
 	// 		state.inst = insts.NewInst()
@@ -296,7 +309,7 @@ var _ = Describe("ALU", func() {
 		inst.Opcode = 0xC4
 		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
 		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
-		inst.Dst = insts.NewVRegOperand(2, 2, 1)
+		// inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
 		wf.inst = inst
 		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0xF)
