@@ -1,6 +1,8 @@
 package emu
 
 import (
+	"math"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sarchlab/mgpusim/v3/insts"
@@ -32,7 +34,7 @@ var _ = Describe("ALU", func() {
 		for i := 0; i < 32; i++ {
 			wf.WriteReg(insts.VReg(0), 1, i, uint64(i))
 		}
-		wf.WriteReg(insts.Regs[insts.EXEC], 2, 0, 0x00000000ffffffff)
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0x00000000ffffffff)
 
 		alu.Run(wf)
 
@@ -94,75 +96,85 @@ var _ = Describe("ALU", func() {
 	// 		Expect(math.Float32frombits(uint32(sp.DST[0]))).To(Equal(float32(-1.0)))
 	// 	})
 
-	// 	It("should run V_CVT_F32_U32", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP1
-	// 		state.inst.Opcode = 6
+	It("should run V_CVT_F32_U32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP1
+		inst.Opcode = 6
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		sp := state.Scratchpad().AsVOP1()
-	// 		sp.SRC0[0] = 1
-	// 		sp.EXEC = 0x1
+		wf.inst = inst
+		wf.WriteReg(insts.VReg(0), 1, 0, 1)
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0x1)
 
-	// 		alu.Run(state)
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.VReg(2), 1, 0)
+		Expect(math.Float32frombits(uint32(dst))).To(Equal(float32(1.0)))
+	})
 
-	// 		Expect(math.Float32frombits(uint32(sp.DST[0]))).To(Equal(float32(1.0)))
-	// 	})
+	It("should run V_CVT_U32_F32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP1
+		inst.Opcode = 7
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 	It("should run V_CVT_U32_F32", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP1
-	// 		state.inst.Opcode = 7
+		wf.inst = inst
+		wf.WriteReg(insts.VReg(0), 1, 0, uint64(math.Float32bits(1.0)))
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0x1)
 
-	// 		sp := state.Scratchpad().AsVOP1()
-	// 		sp.SRC0[0] = uint64(math.Float32bits(1.0))
-	// 		sp.EXEC = 0x1
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.VReg(2), 1, 0)
+		Expect(dst).To(Equal(uint64(1)))
+	})
 
-	// 		alu.Run(state)
+	It("should run V_CVT_U32_F32, when input is nan", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP1
+		inst.Opcode = 7
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		Expect(sp.DST[0]).To(Equal(uint64(1)))
-	// 	})
+		wf.inst = inst
+		wf.WriteReg(insts.VReg(0), 1, 0, uint64(math.Float32bits(float32(math.NaN()))))
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0x1)
 
-	// 	It("should run V_CVT_U32_F32, when input is nan", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP1
-	// 		state.inst.Opcode = 7
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.VReg(2), 1, 0)
+		Expect(dst).To(Equal(uint64(0)))
+	})
 
-	// 		sp := state.Scratchpad().AsVOP1()
-	// 		sp.SRC0[0] = uint64(math.Float32bits(float32(math.NaN())))
-	// 		sp.EXEC = 0x1
+	It("should run V_CVT_U32_F32, when the input is negative", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP1
+		inst.Opcode = 7
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		alu.Run(state)
+		wf.inst = inst
+		wf.WriteReg(insts.VReg(0), 1, 0, uint64(math.Float32bits(-1.0)))
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0x1)
 
-	// 		Expect(sp.DST[0]).To(Equal(uint64(0)))
-	// 	})
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.VReg(2), 1, 0)
+		Expect(dst).To(Equal(uint64(0)))
+	})
 
-	// 	It("should run V_CVT_U32_F32, when the input is negative", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP1
-	// 		state.inst.Opcode = 7
+	It("should run V_CVT_U32_F32, when the input is very large", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP1
+		inst.Opcode = 7
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		sp := state.Scratchpad().AsVOP1()
-	// 		sp.SRC0[0] = uint64(math.Float32bits(-1.0))
-	// 		sp.EXEC = 0x1
+		wf.inst = inst
+		wf.WriteReg(insts.VReg(0), 1, 0, uint64(math.Float32bits(float32(math.MaxUint32+1))))
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0x1)
 
-	// 		alu.Run(state)
-
-	// 		Expect(sp.DST[0]).To(Equal(uint64(0)))
-	// 	})
-
-	// 	It("should run V_CVT_U32_F32, when the input is very large", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP1
-	// 		state.inst.Opcode = 7
-
-	// 		sp := state.Scratchpad().AsVOP1()
-	// 		sp.SRC0[0] = uint64(math.Float32bits(float32(math.MaxUint32 + 1)))
-	// 		sp.EXEC = 0x1
-
-	// 		alu.Run(state)
-
-	// 		Expect(sp.DST[0]).To(Equal(uint64(math.MaxUint32)))
-	// 	})
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.VReg(2), 1, 0)
+		Expect(dst).To(Equal(uint64(math.MaxUint32)))
+	})
 
 	// 	It("should run V_CVT_I32_F32", func() {
 	// 		state.inst = insts.NewInst()
@@ -288,37 +300,43 @@ var _ = Describe("ALU", func() {
 	// 			To(BeTrue())
 	// 	})
 
-	// 	It("should run V_RCP_F32", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP1
-	// 		state.inst.Opcode = 34
+	It("should run V_RCP_F32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP1
+		inst.Opcode = 34
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		sp := state.Scratchpad().AsVOP1()
-	// 		sp.SRC0[0] = uint64(math.Float32bits(1.0))
-	// 		sp.SRC0[1] = uint64(math.Float32bits(2.0))
-	// 		sp.EXEC = 0x3
+		wf.inst = inst
+		wf.WriteReg(insts.VReg(0), 1, 0, uint64(math.Float32bits(1.0)))
+		wf.WriteReg(insts.VReg(0), 1, 1, uint64(math.Float32bits(2.0)))
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0x3)
 
-	// 		alu.Run(state)
+		alu.Run(wf)
+		dst_0 := wf.ReadReg(insts.VReg(2), 1, 0)
+		dst_1 := wf.ReadReg(insts.VReg(2), 1, 1)
+		Expect(math.Float32frombits(uint32(dst_0))).To(Equal(float32(1.0)))
+		Expect(math.Float32frombits(uint32(dst_1))).To(Equal(float32(0.5)))
+	})
 
-	// 		Expect(math.Float32frombits(uint32(sp.DST[0]))).To(Equal(float32(1.0)))
-	// 		Expect(math.Float32frombits(uint32(sp.DST[1]))).To(Equal(float32(0.5)))
-	// 	})
+	It("should run V_RCP_IFLAG_F32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP1
+		inst.Opcode = 35
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 	It("should run V_RCP_IFLAG_F32", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP1
-	// 		state.inst.Opcode = 35
+		wf.inst = inst
+		wf.WriteReg(insts.VReg(0), 1, 0, uint64(math.Float32bits(1.0)))
+		wf.WriteReg(insts.VReg(0), 1, 1, uint64(math.Float32bits(2.0)))
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0x3)
 
-	// 		sp := state.Scratchpad().AsVOP1()
-	// 		sp.SRC0[0] = uint64(math.Float32bits(1.0))
-	// 		sp.SRC0[1] = uint64(math.Float32bits(2.0))
-	// 		sp.EXEC = 0x3
-
-	// 		alu.Run(state)
-
-	// 		Expect(math.Float32frombits(uint32(sp.DST[0]))).To(Equal(float32(1.0)))
-	// 		Expect(math.Float32frombits(uint32(sp.DST[1]))).To(Equal(float32(0.5)))
-	// 	})
+		alu.Run(wf)
+		dst_0 := wf.ReadReg(insts.VReg(2), 1, 0)
+		dst_1 := wf.ReadReg(insts.VReg(2), 1, 1)
+		Expect(math.Float32frombits(uint32(dst_0))).To(Equal(float32(1.0)))
+		Expect(math.Float32frombits(uint32(dst_1))).To(Equal(float32(0.5)))
+	})
 
 	// 	It("should run V_RSQ_F32", func() {
 	// 		state.inst = insts.NewInst()
