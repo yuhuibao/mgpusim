@@ -184,41 +184,47 @@ var _ = Describe("ALU", func() {
 	// 		Expect(sp.DST[0]).To(Equal(uint64(2)))
 	// 	})
 
-	// 	It("should run V_CMP_EQ_U32 VOP3a", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP3a
-	// 		state.inst.Opcode = 202
+	It("should run V_CMP_EQ_U32 VOP3a", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP3a
+		inst.Opcode = 202
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		sp := state.Scratchpad().AsVOP3A()
-	// 		sp.SRC0[0] = 1
-	// 		sp.SRC1[0] = 1
-	// 		sp.SRC0[1] = 1
-	// 		sp.SRC1[1] = 2
-	// 		sp.EXEC = 3
+		wf.inst = inst
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 3)
+		wf.WriteReg(insts.VReg(0), 1, 0, 1)
+		wf.WriteReg(insts.VReg(0), 1, 1, 1)
+		wf.WriteReg(insts.VReg(1), 1, 0, 1)
+		wf.WriteReg(insts.VReg(1), 1, 1, 2)
 
-	// 		alu.Run(state)
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.VReg(2), 1, 0)
+		Expect(dst).To(Equal(uint64(1)))
+	})
 
-	// 		Expect(sp.DST[0]).To(Equal(uint64(1)))
-	// 	})
+	It("should run V_CMP_LE_U32 VOP3a", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP3a
+		inst.Opcode = 203
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 	It("should run V_CMP_LE_U32 VOP3a", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP3a
-	// 		state.inst.Opcode = 203
+		wf.inst = inst
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0x7)
+		wf.WriteReg(insts.VReg(0), 1, 0, 1)
+		wf.WriteReg(insts.VReg(0), 1, 1, 1)
+		wf.WriteReg(insts.VReg(0), 1, 2, 1)
+		wf.WriteReg(insts.VReg(1), 1, 0, 1)
+		wf.WriteReg(insts.VReg(1), 1, 1, 2)
+		wf.WriteReg(insts.VReg(1), 1, 2, 0)
 
-	// 		sp := state.Scratchpad().AsVOP3A()
-	// 		sp.SRC0[0] = 1
-	// 		sp.SRC1[0] = 1
-	// 		sp.SRC0[1] = 1
-	// 		sp.SRC1[1] = 2
-	// 		sp.SRC0[2] = 1
-	// 		sp.SRC1[2] = 0
-	// 		sp.EXEC = 0x7
-
-	// 		alu.Run(state)
-
-	// 		Expect(sp.DST[0]).To(Equal(uint64(3)))
-	// 	})
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.VReg(2), 1, 0)
+		Expect(dst).To(Equal(uint64(3)))
+	})
 
 	// 	It("should run V_CMP_GT_U32 VOP3a", func() {
 	// 		state.inst = insts.NewInst()
@@ -296,24 +302,29 @@ var _ = Describe("ALU", func() {
 	// 		Expect(sp.DST[0]).To(Equal(uint64(2)))
 	// 	})
 
-	// 	It("should run V_CNDMASK_B32 VOP3a", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP3a
-	// 		state.inst.Opcode = 256
+	It("should run V_CNDMASK_B32 VOP3a", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP3a
+		inst.Opcode = 256
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
+		inst.Src2 = insts.NewVRegOperand(2, 2, 1)
+		inst.Dst = insts.NewVRegOperand(3, 3, 1)
 
-	// 		sp := state.Scratchpad().AsVOP3A()
-	// 		sp.SRC0[0] = 1
-	// 		sp.SRC1[0] = 2
-	// 		sp.SRC0[1] = 1
-	// 		sp.SRC1[1] = 2
-	// 		sp.SRC2[0] = 1
-	// 		sp.EXEC = 3
+		wf.inst = inst
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 3)
+		wf.WriteReg(insts.VReg(0), 1, 0, 1)
+		wf.WriteReg(insts.VReg(0), 1, 1, 1)
+		wf.WriteReg(insts.VReg(1), 1, 0, 2)
+		wf.WriteReg(insts.VReg(1), 1, 1, 2)
+		wf.WriteReg(insts.VReg(2), 1, 0, 1)
 
-	// 		alu.Run(state)
-
-	// 		Expect(sp.DST[0]).To(Equal(uint64(2)))
-	// 		Expect(sp.DST[1]).To(Equal(uint64(1)))
-	// 	})
+		alu.Run(wf)
+		dst_0 := wf.ReadReg(insts.VReg(3), 1, 0)
+		dst_1 := wf.ReadReg(insts.VReg(3), 1, 1)
+		Expect(dst_0).To(Equal(uint64(2)))
+		Expect(dst_1).To(Equal(uint64(1)))
+	})
 
 	// 	It("should run V_SUB_F32 VOP3a", func() {
 	// 		state.inst = insts.NewInst()
@@ -563,21 +574,24 @@ var _ = Describe("ALU", func() {
 		}
 	})
 
-	// 	It("should run V_MUL_HI_U32", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP3a
-	// 		state.inst.Opcode = 646
+	It("should run V_MUL_HI_U32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP3a
+		inst.Opcode = 646
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		sp := state.Scratchpad().AsVOP3A()
-	// 		sp.SRC0[0] = uint64(0x80000000)
-	// 		sp.SRC1[0] = uint64(2)
-	// 		sp.EXEC = 1
+		wf.inst = inst
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 1)
+		wf.WriteReg(insts.VReg(0), 2, 0, uint64(0x80000000))
+		wf.WriteReg(insts.VReg(1), 2, 0, uint64(2))
 
-	// 		alu.Run(state)
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.VReg(2), 1, 0)
+		Expect(dst).To(Equal(uint64(1)))
 
-	// 		Expect(sp.DST[0]).To(Equal(uint64(1)))
-
-	// 	})
+	})
 
 	It("should run V_LSHLREV_B64", func() {
 		inst := insts.NewInst()
