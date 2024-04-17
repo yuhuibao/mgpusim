@@ -62,21 +62,24 @@ var _ = Describe("ALU", func() {
 		Expect(dst).To(Equal(uint64(math.Float32bits(float32(5.1)))))
 	})
 
-	// 	It("should run V_SUB_F32", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP2
-	// 		state.inst.Opcode = 2
+	It("should run V_SUB_F32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP2
+		inst.Opcode = 2
 
-	// 		sp := state.Scratchpad().AsVOP2()
-	// 		sp.SRC0[0] = uint64(math.Float32bits(2.0))
-	// 		sp.SRC1[0] = uint64(math.Float32bits(3.1))
-	// 		sp.EXEC = 0x1
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		alu.Run(state)
+		wf.inst = inst
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0x1)
+		wf.WriteReg(insts.VReg(0), 1, 0, uint64(math.Float32bits(2.0)))
+		wf.WriteReg(insts.VReg(1), 1, 0, uint64(math.Float32bits(3.1)))
 
-	// 		Expect(math.Float32frombits(uint32(sp.DST[0]))).To(
-	// 			BeNumerically("~", -1.1, 1e-4))
-	// 	})
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.VReg(2), 1, 0)
+		Expect(math.Float32frombits(uint32(dst))).To(BeNumerically("~", -1.1, 1e-4))
+	})
 
 	// 	It("should run V_SUBREV_F32", func() {
 	// 		state.inst = insts.NewInst()
@@ -576,69 +579,89 @@ var _ = Describe("ALU", func() {
 	// 	// 	Expect(sp.VCC).To(Equal(uint64(0xffffffffffffffff)))
 	// 	// })
 
-	// 	It("should run V_SUB_I32", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP2
-	// 		state.inst.Opcode = 26
+	It("should run V_SUB_I32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP2
+		inst.Opcode = 26
 
-	// 		sp := state.Scratchpad().AsVOP2()
-	// 		sp.SRC0[0] = 10
-	// 		sp.SRC1[0] = 4
-	// 		sp.EXEC = 1
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		alu.Run(state)
+		wf.inst = inst
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 1)
+		wf.WriteReg(insts.VReg(0), 1, 0, 10)
+		wf.WriteReg(insts.VReg(1), 1, 0, 4)
 
-	// 		Expect(sp.DST[0]).To(Equal(uint64(6)))
-	// 		Expect(sp.VCC).To(Equal(uint64(0)))
-	// 	})
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.VReg(2), 1, 0)
+		vcc := wf.ReadReg(insts.Regs[insts.VCC], 1, 0)
+		Expect(dst).To(Equal(uint64(6)))
+		Expect(vcc).To(Equal(uint64(0)))
+	})
 
-	// 	It("should run V_SUB_I32, when underflow", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP2
-	// 		state.inst.Opcode = 26
+	It("should run V_SUB_I32, when underflow", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP2
+		inst.Opcode = 26
 
-	// 		sp := state.Scratchpad().AsVOP2()
-	// 		sp.SRC0[0] = 4
-	// 		sp.SRC1[0] = 10
-	// 		sp.EXEC = 1
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		alu.Run(state)
+		wf.inst = inst
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 1)
+		wf.WriteReg(insts.VReg(0), 1, 0, 4)
+		wf.WriteReg(insts.VReg(1), 1, 0, 10)
 
-	// 		Expect(uint32(sp.DST[0])).To(Equal(uint32(0xfffffffa)))
-	// 		Expect(sp.VCC).To(Equal(uint64(1)))
-	// 	})
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.VReg(2), 1, 0)
+		vcc := wf.ReadReg(insts.Regs[insts.VCC], 1, 0)
+		Expect(dst).To(Equal(uint64(0xfffffffa)))
+		Expect(vcc).To(Equal(uint64(1)))
+	})
 
-	// 	It("should run V_SUBREV_I32", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP2
-	// 		state.inst.Opcode = 27
+	It("should run V_SUBREV_I32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP2
+		inst.Opcode = 27
 
-	// 		sp := state.Scratchpad().AsVOP2()
-	// 		sp.SRC0[0] = 4
-	// 		sp.SRC1[0] = 10
-	// 		sp.EXEC = 1
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		alu.Run(state)
+		wf.inst = inst
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 1)
+		wf.WriteReg(insts.VReg(0), 1, 0, 4)
+		wf.WriteReg(insts.VReg(1), 1, 0, 10)
 
-	// 		Expect(sp.DST[0]).To(Equal(uint64(6)))
-	// 		Expect(sp.VCC).To(Equal(uint64(0)))
-	// 	})
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.VReg(2), 1, 0)
+		vcc := wf.ReadReg(insts.Regs[insts.VCC], 1, 0)
+		Expect(dst).To(Equal(uint64(6)))
+		Expect(vcc).To(Equal(uint64(0)))
+	})
 
-	// 	It("should run V_SUBREV_I32, when underflow", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP2
-	// 		state.inst.Opcode = 27
+	It("should run V_SUBREV_I32, when underflow", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP2
+		inst.Opcode = 27
 
-	// 		sp := state.Scratchpad().AsVOP2()
-	// 		sp.SRC0[0] = 10
-	// 		sp.SRC1[0] = 4
-	// 		sp.EXEC = 1
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		alu.Run(state)
+		wf.inst = inst
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 1)
+		wf.WriteReg(insts.VReg(0), 1, 0, 10)
+		wf.WriteReg(insts.VReg(1), 1, 0, 4)
 
-	// 		Expect(uint32(sp.DST[0])).To(Equal(uint32(0xfffffffa)))
-	// 		Expect(sp.VCC).To(Equal(uint64(1)))
-	// 	})
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.VReg(2), 1, 0)
+		vcc := wf.ReadReg(insts.Regs[insts.VCC], 1, 0)
+		Expect(uint32(dst)).To(Equal(uint32(0xfffffffa)))
+		Expect(vcc).To(Equal(uint64(1)))
+	})
 
 	It("should run V_ADDC_U32", func() {
 		inst := insts.NewInst()

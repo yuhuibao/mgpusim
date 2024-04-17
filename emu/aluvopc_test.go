@@ -266,17 +266,6 @@ var _ = Describe("ALU", func() {
 		wf.WriteReg(insts.VReg(1), 1, 2, 0)
 		wf.WriteReg(insts.VReg(1), 1, 3, 2)
 
-		// sp := state.Scratchpad().AsVOPC()
-		// sp.EXEC = 0xF
-		// sp.SRC0[0] = 1
-		// sp.SRC0[1] = uint64(int32ToBits(-1))
-		// sp.SRC0[2] = 1
-		// sp.SRC0[3] = 1
-		// sp.SRC1[0] = 1
-		// sp.SRC1[1] = uint64(int32ToBits(-2))
-		// sp.SRC1[2] = 0
-		// sp.SRC1[3] = 2
-
 		alu.Run(wf)
 		vcc := wf.ReadReg(insts.Regs[insts.VCC], 1, 0)
 		Expect(vcc).To(Equal(uint64(0x8)))
@@ -309,7 +298,6 @@ var _ = Describe("ALU", func() {
 		inst.Opcode = 0xC4
 		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
 		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
-		// inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
 		wf.inst = inst
 		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0xF)
@@ -470,24 +458,44 @@ var _ = Describe("ALU", func() {
 	// 		Expect(sp.VCC).To(Equal(uint64(0x0000000000000002)))
 	// 	})
 
-	// 	It("should run v_cmp_ge_u32", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOPC
-	// 		state.inst.Opcode = 0xCE
+	It("should run v_cmp_ge_u32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOPC
+		inst.Opcode = 0xCE
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		sp := state.Scratchpad().AsVOPC()
-	// 		sp.EXEC = 0x7
-	// 		sp.SRC0[0] = 1
-	// 		sp.SRC1[0] = 1
-	// 		sp.SRC0[1] = 1
-	// 		sp.SRC1[1] = 2
-	// 		sp.SRC0[2] = 1
-	// 		sp.SRC1[2] = 0
+		wf.inst = inst
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0x7)
+		wf.WriteReg(insts.VReg(0), 1, 0, 1)
+		wf.WriteReg(insts.VReg(0), 1, 1, 1)
+		wf.WriteReg(insts.VReg(0), 1, 2, 1)
+		wf.WriteReg(insts.VReg(1), 1, 0, 1)
+		wf.WriteReg(insts.VReg(1), 1, 1, 2)
+		wf.WriteReg(insts.VReg(1), 1, 2, 0)
 
-	// 		alu.Run(state)
+		alu.Run(wf)
+		vcc := wf.ReadReg(insts.Regs[insts.VCC], 1, 0)
+		Expect(vcc).To(Equal(uint64(0x5)))
 
-	// 		Expect(sp.VCC).To(Equal(uint64(0x5)))
-	// 	})
+		// state.inst = insts.NewInst()
+		// state.inst.FormatType = insts.VOPC
+		// state.inst.Opcode = 0xCE
+
+		// sp := state.Scratchpad().AsVOPC()
+		// sp.EXEC = 0x7
+		// sp.SRC0[0] = 1
+		// sp.SRC1[0] = 1
+		// sp.SRC0[1] = 1
+		// sp.SRC1[1] = 2
+		// sp.SRC0[2] = 1
+		// sp.SRC1[2] = 0
+
+		// alu.Run(state)
+
+		// Expect(sp.VCC).To(Equal(uint64(0x5)))
+	})
 
 	// 	It("should run v_cmp_f_u64", func() {
 	// 		state.inst = insts.NewInst()

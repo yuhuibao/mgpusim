@@ -52,10 +52,10 @@ func (u *ALUImpl) runVOPC(state InstEmuState) {
 		// 		u.runVCmpLeU32(state)
 	case 0xCC: // v_cmp_gt_u32
 		u.runVCmpGtU32(state)
-	// 	case 0xCD: // v_cmp_ne_u32
-	// 		u.runVCmpNeU32(state)
-	// 	case 0xCE: // v_cmp_ge_u32
-	// 		u.runVCmpGeU32(state)
+		// 	case 0xCD: // v_cmp_ne_u32
+		// 		u.runVCmpNeU32(state)
+	case 0xCE: // v_cmp_ge_u32
+		u.runVCmpGeU32(state)
 	// 	case 0xE8:
 	// 		u.runVCmpFU64(state)
 	// 	case 0xE9:
@@ -454,18 +454,22 @@ func (u *ALUImpl) runVCmpGtU32(state InstEmuState) {
 // 	}
 // }
 
-// func (u *ALUImpl) runVCmpGeU32(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOPC()
-// 	sp.VCC = 0
-// 	var i uint
-// 	for i = 0; i < 64; i++ {
-// 		if laneMasked(sp.EXEC, i) {
-// 			if sp.SRC0[i] >= sp.SRC1[i] {
-// 				sp.VCC = sp.VCC | (1 << i)
-// 			}
-// 		}
-// 	}
-// }
+func (u *ALUImpl) runVCmpGeU32(state InstEmuState) {
+	vcc := uint64(0)
+	var i int
+	inst := state.Inst()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	for i = 0; i < 64; i++ {
+		if laneMasked(exec, uint(i)) {
+			src0 := uint32(u.ReadOperand(state, inst.Src0, i, nil))
+			src1 := uint32(u.ReadOperand(state, inst.Src1, i, nil))
+			if src0 >= src1 {
+				vcc |= (1 << i)
+			}
+		}
+	}
+	state.WriteReg(insts.Regs[insts.VCC], 1, 0, vcc)
+}
 
 // func (u *ALUImpl) runVCmpFU64(state InstEmuState) {
 // 	sp := state.Scratchpad().AsVOPC()
