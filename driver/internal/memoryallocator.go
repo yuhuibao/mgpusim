@@ -4,6 +4,7 @@ package internal
 import (
 	"sync"
 
+	"github.com/sarchlab/akita/v3/mem/mem"
 	"github.com/sarchlab/akita/v3/mem/vm"
 )
 
@@ -28,6 +29,7 @@ type MemoryAllocator interface {
 func NewMemoryAllocator(
 	pageTable vm.PageTable,
 	log2PageSize uint64,
+	storage *mem.Storage,
 ) MemoryAllocator {
 	a := &memoryAllocatorImpl{
 		pageTable:            pageTable,
@@ -36,6 +38,7 @@ func NewMemoryAllocator(
 		processMemoryStates:  make(map[vm.PID]*processMemoryState),
 		vAddrToPageMapping:   make(map[uint64]vm.Page),
 		devices:              make(map[int]*Device),
+		globalStorage:        storage,
 	}
 	return a
 }
@@ -55,6 +58,7 @@ type memoryAllocatorImpl struct {
 	processMemoryStates  map[vm.PID]*processMemoryState
 	devices              map[int]*Device
 	totalStorageByteSize uint64
+	globalStorage        *mem.Storage
 }
 
 func (a *memoryAllocatorImpl) RegisterDevice(device *Device) {
@@ -165,6 +169,11 @@ func (a *memoryAllocatorImpl) allocatePages(
 		// debug.PrintStack()
 		a.pageTable.Insert(page)
 		a.vAddrToPageMapping[page.VAddr] = page
+
+		err := a.globalStorage.CreateStorageUnit(pAddr)
+		if err != nil {
+			panic(err.Error())
+		}
 	}
 
 	pState.nextVAddr += pageSize * uint64(numPages)
