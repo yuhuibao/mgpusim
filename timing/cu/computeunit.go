@@ -459,13 +459,20 @@ func (cu *ComputeUnit) handleScalarDataLoadReturn(
 	}
 
 	wf := info.Wavefront
-	access := RegisterAccess{
-		WaveOffset: wf.SRegOffset,
-		Reg:        info.DstSGPR,
-		RegCount:   len(rsp.Data) / 4,
-		Data:       rsp.Data,
+	regCount := len(rsp.Data) / 4
+	switch regCount {
+	case 1:
+		wf.WriteReg(info.DstSGPR, regCount, 0, uint64(insts.BytesToUint32(rsp.Data)))
+	case 2:
+		wf.WriteReg(info.DstSGPR, regCount, 0, insts.BytesToUint64(rsp.Data))
+	case 4:
+		var buffer []uint32
+		for i := 0; i < 16; i += 4 {
+			num := uint32(rsp.Data[i]) | uint32(rsp.Data[i+1])<<8 | uint32(rsp.Data[i+2])<<16 | uint32(rsp.Data[i+3])<<24
+			buffer = append(buffer, num)
+		}
+		wf.WriteReg2Plus(info.DstSGPR, regCount, 0, buffer)
 	}
-	cu.SRegFile.Write(access)
 
 	cu.InFlightScalarMemAccess = cu.InFlightScalarMemAccess[1:]
 
