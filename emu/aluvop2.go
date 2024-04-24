@@ -17,8 +17,8 @@ func (u *ALUImpl) runVOP2(state InstEmuState) {
 		u.runVADDF32(state)
 	case 2:
 		u.runVSUBF32(state)
-		// 	case 3:
-		// 		u.runVSUBREVF32(state)
+	case 3:
+		u.runVSUBREVF32(state)
 		// 	case 4:
 		// 		u.runVMULF32(state)
 	case 5:
@@ -139,25 +139,25 @@ func (u *ALUImpl) runVSUBF32(state InstEmuState) {
 	}
 }
 
-// func (u *ALUImpl) runVSUBREVF32(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOP2()
-// 	inst := state.Inst()
-// 	if inst.IsSdwa == false {
-// 		var i uint
-// 		for i = 0; i < 64; i++ {
-// 			if !laneMasked(sp.EXEC, i) {
-// 				continue
-// 			}
+func (u *ALUImpl) runVSUBREVF32(state InstEmuState) {
+	inst := state.Inst()
+	if !inst.IsSdwa {
+		var i int
+		exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+		for i = 0; i < 64; i++ {
+			if !laneMasked(exec, uint(i)) {
+				continue
+			}
 
-// 			src0 := math.Float32frombits(uint32(sp.SRC0[i]))
-// 			src1 := math.Float32frombits(uint32(sp.SRC1[i]))
-// 			dst := src1 - src0
-// 			sp.DST[i] = uint64(math.Float32bits(dst))
-// 		}
-// 	} else {
-// 		log.Panicf("SDWA for VOP2 instruction opcode  %d not implemented \n", inst.Opcode)
-// 	}
-// }
+			src0 := math.Float32frombits(uint32(u.ReadOperand(state, inst.Src0, i, nil)))
+			src1 := math.Float32frombits(uint32(u.ReadOperand(state, inst.Src1, i, nil)))
+			dst := src1 - src0
+			u.WriteOperand(state, inst.Dst, i, uint64(math.Float32bits(dst)), nil)
+		}
+	} else {
+		log.Panicf("SDWA for VOP2 instruction opcode  %d not implemented \n", inst.Opcode)
+	}
+}
 
 func (u *ALUImpl) runVMULF32(state InstEmuState) {
 	inst := state.Inst()

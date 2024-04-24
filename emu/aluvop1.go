@@ -13,8 +13,8 @@ func (u *ALUImpl) runVOP1(state InstEmuState) {
 	switch inst.Opcode {
 	case 1:
 		u.runVMOVB32(state)
-		// 	case 2:
-		// 		u.runVREADFIRSTLANEB32(state)
+	case 2:
+		u.runVREADFIRSTLANEB32(state)
 		// 	case 4:
 		// 		u.runVCVTF64I32(state)
 		// 	case 5:
@@ -74,22 +74,24 @@ func (u *ALUImpl) runVMOVB32(state InstEmuState) {
 	}
 }
 
-// func (u *ALUImpl) runVREADFIRSTLANEB32(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOP1()
-// 	var i uint
-// 	var laneid uint
-// 	for i = 0; i < 64; i++ {
-// 		if !laneMasked(sp.EXEC, i) {
-// 			continue
-// 		}
-// 		laneid = i
-// 		break
-// 	}
+func (u *ALUImpl) runVREADFIRSTLANEB32(state InstEmuState) {
+	var i int
+	var laneid int
+	inst := state.Inst()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	for i = 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
+		laneid = i
+		break
+	}
 
-// 	for i = 0; i < 64; i++ {
-// 		sp.DST[i] = sp.SRC0[laneid]
-// 	}
-// }
+	for i = 0; i < 64; i++ {
+		src0 := u.ReadOperand(state, inst.Src0, int(laneid), nil)
+		u.WriteOperand(state, inst.Dst, i, src0, nil)
+	}
+}
 
 // func (u *ALUImpl) runVCVTF64I32(state InstEmuState) {
 // 	sp := state.Scratchpad().AsVOP1()

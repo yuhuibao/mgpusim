@@ -1,6 +1,8 @@
 package emu
 
 import (
+	"math"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sarchlab/mgpusim/v3/insts"
@@ -20,24 +22,26 @@ var _ = Describe("ALU", func() {
 		wf = NewWavefront(rawWf)
 	})
 
-	// 	It("should run v_cmp_lt_f32", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOPC
-	// 		state.inst.Opcode = 0x41
+	It("should run v_cmp_lt_f32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOPC
+		inst.Opcode = 0x41
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
 
-	// 		sp := state.Scratchpad().AsVOPC()
-	// 		sp.EXEC = 0x7
-	// 		sp.SRC0[0] = uint64(math.Float32bits(-1.2))
-	// 		sp.SRC1[0] = uint64(math.Float32bits(-1.2))
-	// 		sp.SRC0[1] = uint64(math.Float32bits(-2.5))
-	// 		sp.SRC1[1] = uint64(math.Float32bits(0.0))
-	// 		sp.SRC0[2] = uint64(math.Float32bits(1.5))
-	// 		sp.SRC1[2] = uint64(math.Float32bits(0.0))
+		wf.inst = inst
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0x7)
+		wf.WriteReg(insts.VReg(0), 1, 0, uint64(math.Float32bits(-1.2)))
+		wf.WriteReg(insts.VReg(0), 1, 1, uint64(math.Float32bits(-2.5)))
+		wf.WriteReg(insts.VReg(0), 1, 2, uint64(math.Float32bits(1.5)))
+		wf.WriteReg(insts.VReg(1), 1, 0, uint64(math.Float32bits(-1.2)))
+		wf.WriteReg(insts.VReg(1), 1, 1, uint64(math.Float32bits(0.0)))
+		wf.WriteReg(insts.VReg(1), 1, 2, uint64(math.Float32bits(0.0)))
 
-	// 		alu.Run(state)
-
-	// 		Expect(sp.VCC).To(Equal(uint64(0x2)))
-	// 	})
+		alu.Run(wf)
+		vcc := wf.ReadReg(insts.Regs[insts.VCC], 1, 0)
+		Expect(vcc).To(Equal(uint64(0x2)))
+	})
 
 	// 	It("should run v_cmp_eq_f32", func() {
 	// 		state.inst = insts.NewInst()
@@ -441,22 +445,25 @@ var _ = Describe("ALU", func() {
 		Expect(vcc).To(Equal(uint64(0x4)))
 	})
 
-	// 	It("should run v_cmp_ne_u32", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOPC
-	// 		state.inst.Opcode = 0xCD
+	It("should run v_cmp_ne_u32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOPC
+		inst.Opcode = 0xCD
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		sp := state.Scratchpad().AsVOPC()
-	// 		sp.EXEC = 0xffffffffffffffff
-	// 		sp.SRC0[0] = 1
-	// 		sp.SRC1[0] = 1
-	// 		sp.SRC0[1] = 0
-	// 		sp.SRC1[1] = 2
+		wf.inst = inst
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0xffffffffffffffff)
+		wf.WriteReg(insts.VReg(0), 1, 0, 1)
+		wf.WriteReg(insts.VReg(0), 1, 1, 0)
+		wf.WriteReg(insts.VReg(1), 1, 0, 1)
+		wf.WriteReg(insts.VReg(1), 1, 1, 2)
 
-	// 		alu.Run(state)
-
-	// 		Expect(sp.VCC).To(Equal(uint64(0x0000000000000002)))
-	// 	})
+		alu.Run(wf)
+		vcc := wf.ReadReg(insts.Regs[insts.VCC], 1, 0)
+		Expect(vcc).To(Equal(uint64(0x0000000000000002)))
+	})
 
 	It("should run v_cmp_ge_u32", func() {
 		inst := insts.NewInst()

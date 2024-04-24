@@ -66,7 +66,6 @@ var _ = Describe("ALU", func() {
 		inst := insts.NewInst()
 		inst.FormatType = insts.VOP2
 		inst.Opcode = 2
-
 		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
 		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
 		inst.Dst = insts.NewVRegOperand(2, 2, 1)
@@ -81,21 +80,24 @@ var _ = Describe("ALU", func() {
 		Expect(math.Float32frombits(uint32(dst))).To(BeNumerically("~", -1.1, 1e-4))
 	})
 
-	// 	It("should run V_SUBREV_F32", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP2
-	// 		state.inst.Opcode = 3
+	It("should run V_SUBREV_F32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP2
+		inst.Opcode = 3
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		sp := state.Scratchpad().AsVOP2()
-	// 		sp.SRC0[0] = uint64(math.Float32bits(2.0))
-	// 		sp.SRC1[0] = uint64(math.Float32bits(3.1))
-	// 		sp.EXEC = 0x1
+		wf.inst = inst
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0x1)
+		wf.WriteReg(insts.VReg(0), 1, 0, uint64(math.Float32bits(2.0)))
+		wf.WriteReg(insts.VReg(1), 1, 0, uint64(math.Float32bits(3.1)))
 
-	// 		alu.Run(state)
-
-	// 		Expect(math.Float32frombits(uint32(sp.DST[0]))).To(
-	// 			BeNumerically("~", 1.1, 1e-4))
-	// 	})
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.VReg(2), 1, 0)
+		Expect(math.Float32frombits(uint32(dst))).To(
+			BeNumerically("~", 1.1, 1e-4))
+	})
 
 	It("should run V_MUL_F32", func() {
 		inst := insts.NewInst()
