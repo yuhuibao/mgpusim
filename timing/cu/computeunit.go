@@ -45,8 +45,8 @@ type ComputeUnit struct {
 	ScalarUnit       SubComponent
 	SIMDUnit         []SubComponent
 	LDSUnit          SubComponent
-	SRegFile         RegisterFile
-	VRegFile         []RegisterFile
+	// SRegFile         RegisterFile
+	// VRegFile         []RegisterFile
 
 	InstMem          sim.Port
 	ScalarMem        sim.Port
@@ -534,19 +534,16 @@ func (cu *ComputeUnit) handleVectorDataLoadReturn(
 
 	for _, laneInfo := range info.laneInfo {
 		offset := laneInfo.addrOffsetInCacheLine
-		access := RegisterAccess{}
-		access.WaveOffset = wf.VRegOffset
-		access.Reg = laneInfo.reg
-		access.RegCount = laneInfo.regCount
-		access.LaneID = laneInfo.laneID
+		reg := laneInfo.reg
+		regCount := laneInfo.regCount
+		laneID := laneInfo.laneID
 		if inst.FormatType == insts.FLAT && inst.Opcode == 16 { // FLAT_LOAD_UBYTE
-			access.Data = insts.Uint32ToBytes(uint32(rsp.Data[offset]))
+			wf.WriteReg(reg, regCount, laneID, uint64(rsp.Data[offset]))
 		} else if inst.FormatType == insts.FLAT && inst.Opcode == 18 {
-			access.Data = insts.Uint32ToBytes(uint32(rsp.Data[offset]))
+			wf.WriteReg(reg, regCount, laneID, uint64(insts.BytesToUint16(rsp.Data[offset:offset+2])))
 		} else {
-			access.Data = rsp.Data[offset : offset+uint64(4*laneInfo.regCount)]
+			wf.WriteReg(reg, regCount, laneID, uint64(insts.BytesToUint32(rsp.Data[offset:offset+4])))
 		}
-		cu.VRegFile[wf.SIMDID].Write(access)
 	}
 
 	if !info.Read.CanWaitForCoalesce {
