@@ -1,7 +1,6 @@
 package cu
 
 import (
-	"encoding/binary"
 	"fmt"
 	"log"
 
@@ -105,7 +104,7 @@ func (h *ISADebugger) logWholeWf(
 			output += ","
 		}
 
-		regValue := h.getSRegValue(wf, i)
+		regValue := uint32(wf.ReadReg(insts.SReg(i), 1, 0))
 		output += fmt.Sprintf("%d", regValue)
 	}
 	output += "]"
@@ -122,7 +121,8 @@ func (h *ISADebugger) logWholeWf(
 				output += ","
 			}
 
-			regValue := h.getVRegValue(wf, i, laneID)
+			regValue := uint32(
+				wf.ReadReg(insts.VReg(i), 1, laneID))
 			output += fmt.Sprintf("%d", regValue)
 		}
 
@@ -139,35 +139,35 @@ func (h *ISADebugger) logWholeWf(
 	h.Logger.Print(output)
 }
 
-func (h *ISADebugger) getVRegValue(
-	wf *wavefront.Wavefront,
-	regIndex, laneID int,
-) uint32 {
-	registerFile := h.cu.VRegFile[wf.SIMDID]
-	regRead := RegisterAccess{}
-	regRead.Reg = insts.VReg(regIndex)
-	regRead.RegCount = 1
-	regRead.LaneID = laneID
-	regRead.WaveOffset = wf.VRegOffset
-	regRead.Data = make([]byte, 4)
-	registerFile.Read(regRead)
+// func (h *ISADebugger) getVRegValue(
+// 	wf *wavefront.Wavefront,
+// 	regIndex, laneID int,
+// ) uint32 {
+// 	registerFile := h.cu.VRegFile[wf.SIMDID]
+// 	regRead := RegisterAccess{}
+// 	regRead.Reg = insts.VReg(regIndex)
+// 	regRead.RegCount = 1
+// 	regRead.LaneID = laneID
+// 	regRead.WaveOffset = wf.VRegOffset
+// 	regRead.Data = make([]byte, 4)
+// 	registerFile.Read(regRead)
 
-	regValue := binary.LittleEndian.Uint32(regRead.Data)
-	return regValue
-}
+// 	regValue := binary.LittleEndian.Uint32(regRead.Data)
+// 	return regValue
+// }
 
-func (h *ISADebugger) getSRegValue(
-	wf *wavefront.Wavefront,
-	regIndex int,
-) uint32 {
-	registerFile := h.cu.SRegFile
-	regRead := RegisterAccess{}
-	regRead.Reg = insts.SReg(regIndex)
-	regRead.RegCount = 1
-	regRead.WaveOffset = wf.SRegOffset
-	regRead.Data = make([]byte, 4)
-	registerFile.Read(regRead)
+// func (h *ISADebugger) getSRegValue(
+// 	wf *wavefront.Wavefront,
+// 	regIndex int,
+// ) uint32 {
+// 	registerFile := h.cu.SRegFile
+// 	regRead := RegisterAccess{}
+// 	regRead.Reg = insts.SReg(regIndex)
+// 	regRead.RegCount = 1
+// 	regRead.WaveOffset = wf.SRegOffset
+// 	regRead.Data = make([]byte, 4)
+// 	registerFile.Read(regRead)
 
-	regValue := binary.LittleEndian.Uint32(regRead.Data)
-	return regValue
-}
+// 	regValue := binary.LittleEndian.Uint32(regRead.Data)
+// 	return regValue
+// }

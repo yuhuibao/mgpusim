@@ -171,3 +171,127 @@ func (wf *Wavefront) WriteReg2Plus(reg *insts.Reg, regCount int, laneID int, buf
 		log.Panicf("Register type %s not supported", reg.Name)
 	}
 }
+
+//nolint:funlen,gocyclo
+func (wf *Wavefront) InitWfRegs() {
+	co := wf.CodeObject
+	pkt := wf.Packet
+
+	wf.PC = pkt.KernelObject + co.KernelCodeEntryByteOffset
+	wf.Exec = wf.InitExecMask
+
+	SGPRPtr := 0
+	if co.EnableSgprPrivateSegmentBuffer() {
+		// log.Printf("EnableSgprPrivateSegmentBuffer is not supported")
+		//fmt.Printf("s%d SGPRPrivateSegmentBuffer\n", SGPRPtr/4)
+		SGPRPtr += 4
+	}
+
+	if co.EnableSgprDispatchPtr() {
+		wf.SRegFile[SGPRPtr+1] = uint32(wf.PacketAddress >> 32)
+		wf.SRegFile[SGPRPtr] = uint32(wf.PacketAddress)
+		//fmt.Printf("s%d SGPRDispatchPtr\n", SGPRPtr/4)
+		SGPRPtr += 2
+	}
+
+	if co.EnableSgprQueuePtr() {
+		log.Printf("EnableSgprQueuePtr is not supported")
+		//fmt.Printf("s%d SGPRQueuePtr\n", SGPRPtr/4)
+		SGPRPtr += 2
+	}
+
+	if co.EnableSgprKernelArgSegmentPtr() {
+		wf.SRegFile[SGPRPtr+1] = uint32(pkt.KernargAddress >> 32)
+		wf.SRegFile[SGPRPtr] = uint32(pkt.KernargAddress)
+		//fmt.Printf("s%d SGPRKernelArgSegmentPtr\n", SGPRPtr/4)
+		SGPRPtr += 2
+	}
+
+	if co.EnableSgprDispatchID() {
+		log.Printf("EnableSgprDispatchID is not supported")
+		//fmt.Printf("s%d SGPRDispatchID\n", SGPRPtr/4)
+		SGPRPtr += 2
+	}
+
+	if co.EnableSgprFlatScratchInit() {
+		log.Printf("EnableSgprFlatScratchInit is not supported")
+		//fmt.Printf("s%d SGPRFlatScratchInit\n", SGPRPtr/4)
+		SGPRPtr += 2
+	}
+
+	if co.EnableSgprPrivateSegementSize() {
+		log.Printf("EnableSgprPrivateSegmentSize is not supported")
+		//fmt.Printf("s%d SGPRPrivateSegmentSize\n", SGPRPtr/4)
+		SGPRPtr += 1
+	}
+
+	if co.EnableSgprGridWorkGroupCountX() {
+		wf.SRegFile[SGPRPtr] =
+			(pkt.GridSizeX + uint32(pkt.WorkgroupSizeX) - 1) / uint32(pkt.WorkgroupSizeX)
+		//fmt.Printf("s%d WorkGroupCountX\n", SGPRPtr/4)
+		SGPRPtr += 1
+	}
+
+	if co.EnableSgprGridWorkGroupCountY() {
+		wf.SRegFile[SGPRPtr] =
+			(pkt.GridSizeY + uint32(pkt.WorkgroupSizeY) - 1) / uint32(pkt.WorkgroupSizeY)
+		//fmt.Printf("s%d WorkGroupCountY\n", SGPRPtr/4)
+		SGPRPtr += 1
+	}
+
+	if co.EnableSgprGridWorkGroupCountZ() {
+		wf.SRegFile[SGPRPtr] =
+			(pkt.GridSizeZ + uint32(pkt.WorkgroupSizeZ) - 1) / uint32(pkt.WorkgroupSizeZ)
+		//fmt.Printf("s%d WorkGroupCountZ\n", SGPRPtr/4)
+		SGPRPtr += 1
+	}
+
+	if co.EnableSgprWorkGroupIDX() {
+		wf.SRegFile[SGPRPtr] =
+			uint32(wf.WG.IDX)
+		//fmt.Printf("s%d WorkGroupIdX\n", SGPRPtr/4)
+		SGPRPtr += 1
+	}
+
+	if co.EnableSgprWorkGroupIDY() {
+		wf.SRegFile[SGPRPtr] =
+			uint32(wf.WG.IDY)
+		//fmt.Printf("s%d WorkGroupIdY\n", SGPRPtr/4)
+		SGPRPtr += 1
+	}
+
+	if co.EnableSgprWorkGroupIDZ() {
+		wf.SRegFile[SGPRPtr] =
+			uint32(wf.WG.IDZ)
+		//fmt.Printf("s%d WorkGroupIdZ\n", SGPRPtr/4)
+		SGPRPtr += 1
+	}
+
+	if co.EnableSgprWorkGroupInfo() {
+		log.Printf("EnableSgprPrivateSegmentSize is not supported")
+		SGPRPtr += 1
+	}
+
+	if co.EnableSgprPrivateSegmentWaveByteOffset() {
+		log.Printf("EnableSgprPrivateSegentWaveByteOffset is not supported")
+		SGPRPtr += 4
+	}
+
+	var x, y, z int
+	for i := wf.FirstWiFlatID; i < wf.FirstWiFlatID+64; i++ {
+		z = i / (wf.WG.SizeX * wf.WG.SizeY)
+		y = i % (wf.WG.SizeX * wf.WG.SizeY) / wf.WG.SizeX
+		x = i % (wf.WG.SizeX * wf.WG.SizeY) % wf.WG.SizeX
+		laneID := i - wf.FirstWiFlatID
+
+		wf.WriteReg(insts.VReg(0), 1, laneID, uint64(x))
+
+		if co.EnableVgprWorkItemID() > 0 {
+			wf.WriteReg(insts.VReg(1), 1, laneID, uint64(y))
+		}
+
+		if co.EnableVgprWorkItemID() > 1 {
+			wf.WriteReg(insts.VReg(2), 1, laneID, uint64(z))
+		}
+	}
+}

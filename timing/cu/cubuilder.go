@@ -107,7 +107,7 @@ func (b *Builder) Build(name string) *ComputeUnit {
 	b.equipSIMDUnits(cu)
 	b.equipLDSUnit(cu)
 	b.equipVectorMemoryUnit(cu)
-	b.equipRegisterFiles(cu)
+	// b.equipRegisterFiles(cu)
 
 	return cu
 }
@@ -188,12 +188,12 @@ func (b *Builder) equipVectorMemoryUnit(cu *ComputeUnit) {
 	}
 }
 
-func (b *Builder) equipRegisterFiles(cu *ComputeUnit) {
-	sRegFile := NewSimpleRegisterFile(uint64(b.sgprCount*4), 0)
-	cu.SRegFile = sRegFile
+// func (b *Builder) equipRegisterFiles(cu *ComputeUnit) {
+// 	sRegFile := NewSimpleRegisterFile(uint64(b.sgprCount*4), 0)
+// 	cu.SRegFile = sRegFile
 
-	for i := 0; i < b.simdCount; i++ {
-		vRegFile := NewSimpleRegisterFile(uint64(b.vgprCount[i]*4), 1024)
-		cu.VRegFile = append(cu.VRegFile, vRegFile)
-	}
-}
+// 	for i := 0; i < b.simdCount; i++ {
+// 		vRegFile := NewSimpleRegisterFile(uint64(b.vgprCount[i]*4), 1024)
+// 		cu.VRegFile = append(cu.VRegFile, vRegFile)
+// 	}
+// }

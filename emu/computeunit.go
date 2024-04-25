@@ -165,7 +165,7 @@ func (cu *ComputeUnit) initWfs(
 	}
 
 	for _, managedWf := range cu.wfs[wg] {
-		cu.initWfRegs(managedWf)
+		managedWf.InitWfRegs()
 	}
 
 	return nil
