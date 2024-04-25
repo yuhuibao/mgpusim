@@ -42,11 +42,11 @@ func (h *ISADebugger) StartTask(task tracing.Task) {
 	}
 
 	// For debugging
-	detail := task.Detail.(map[string]interface{})
-	wf := detail["wf"].(*wavefront.Wavefront)
-	if wf.FirstWiFlatID != 0 {
-		return
-	}
+	// detail := task.Detail.(map[string]interface{})
+	// wf := detail["wf"].(*wavefront.Wavefront)
+	// if wf.FirstWiFlatID != 0 {
+	// 	return
+	// }
 
 	h.executingInst[task.ID] = task
 }
@@ -68,10 +68,11 @@ func (h *ISADebugger) EndTask(task tracing.Task) {
 	wf := detail["wf"].(*wavefront.Wavefront)
 	inst := detail["inst"].(*wavefront.Inst).Inst
 
-	if wf.WG.IDX == 75 && wf.WG.IDY == 1 {
-		h.logWholeWf(inst, wf)
-	}
+	// if wf.WG.IDX == 75 && wf.WG.IDY == 1 {
+	// 	h.logWholeWf(inst, wf)
+	// }
 
+	h.logWholeWf(inst, wf)
 	delete(h.executingInst, task.ID)
 }
 
