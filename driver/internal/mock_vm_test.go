@@ -48,6 +48,18 @@ func (mr *MockPageTableMockRecorder) Find(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockPageTable)(nil).Find), arg0, arg1)
 }
 
+// Init mocks base method.
+func (m *MockPageTable) Init(arg0 vm.PID) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Init", arg0)
+}
+
+// Init indicates an expected call of Init.
+func (mr *MockPageTableMockRecorder) Init(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init", reflect.TypeOf((*MockPageTable)(nil).Init), arg0)
+}
+
 // Insert mocks base method.
 func (m *MockPageTable) Insert(arg0 vm.Page) {
 	m.ctrl.T.Helper()

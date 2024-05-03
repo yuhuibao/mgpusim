@@ -29,6 +29,8 @@ func (d *Driver) Init() *Context {
 	d.contexts = append(d.contexts, c)
 	d.contextMutex.Unlock()
 
+	d.pageTable.Init(vm.PID(nextPID))
+
 	return c
 }
 
