@@ -1,5 +1,7 @@
 package internal
 
+import "github.com/sarchlab/akita/v3/mem/mem"
+
 // DeviceType marks the type of a device.
 type DeviceType int
 
@@ -38,6 +40,7 @@ type Device struct {
 	nextActualGPUIndex int
 	MemState           DeviceMemoryState
 	Properties         DeviceProperties
+	GlobalStorage      *mem.Storage
 }
 
 // SetTotalMemSize sets total memory size
@@ -53,6 +56,11 @@ func (d *Device) allocatePage() (pAddr uint64) {
 	d.mustHaveSpaceLeft()
 	pAddr = d.MemState.popNextAvailablePAddrs()
 
+	err := d.GlobalStorage.CreateStorageUnit(pAddr)
+	if err != nil {
+		panic(err.Error())
+	}
+
 	return pAddr
 }
 
@@ -63,6 +71,13 @@ func (d *Device) allocateMultiplePages(numPages int) (pAddrs []uint64) {
 
 	d.mustHaveSpaceLeft()
 	pAddrs = d.MemState.allocateMultiplePages(numPages)
+
+	for _, pAddr := range pAddrs {
+		err := d.GlobalStorage.CreateStorageUnit(pAddr)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
 
 	return pAddrs
 }

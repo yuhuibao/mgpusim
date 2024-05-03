@@ -70,7 +70,7 @@ func (b Builder) Build(name string) *Driver {
 
 	driver.Log2PageSize = b.log2PageSize
 
-	memAllocatorImpl := internal.NewMemoryAllocator(b.pageTable, b.log2PageSize, b.globalStorage)
+	memAllocatorImpl := internal.NewMemoryAllocator(b.pageTable, b.log2PageSize)
 	driver.memAllocator = memAllocatorImpl
 
 	distributorImpl := newDistributorImpl(memAllocatorImpl)

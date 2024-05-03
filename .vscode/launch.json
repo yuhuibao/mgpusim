@@ -283,9 +283,9 @@
             "mode": "debug",
             "program": "${workspaceFolder}/samples/relu",
             "args": [
-                // "-timing",
-                // "-length=64"
-                "-magic-memory-copy"
+                "-timing",
+                "-length=64"
+                // "-magic-memory-copy"
             ]
         },
         {
