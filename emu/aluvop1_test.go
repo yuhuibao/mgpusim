@@ -51,22 +51,26 @@ var _ = Describe("ALU", func() {
 		}
 	})
 
-	// 	It("should run V_READFIRSTLANE_B32", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP1
-	// 		state.inst.Opcode = 2
+	It("should run V_READFIRSTLANE_B32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP1
+		inst.Opcode = 2
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		sp := state.Scratchpad().AsVOP1()
-	// 		sp.SRC0[8] = 1
-	// 		sp.EXEC = 0x0000000000000100
+		wf.inst = inst
+		wf.WriteReg(insts.VReg(0), 1, 8, 1)
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 0x0000000000000100)
 
-	// 		alu.Run(state)
+		alu.Run(wf)
 
-	// 		for i := 0; i < 64; i++ {
-	// 			Expect(sp.SRC0[8]).To(Equal(sp.DST[i]))
-	// 		}
+		for i := 0; i < 64; i++ {
+			src0 := wf.ReadReg(insts.VReg(0), 1, 8)
+			dst := wf.ReadReg(insts.VReg(2), 1, i)
+			Expect(src0).To(Equal(dst))
+		}
 
-	// 	})
+	})
 
 	// 	It("should run V_CVT_F64_I32", func() {
 	// 		state.inst = insts.NewInst()

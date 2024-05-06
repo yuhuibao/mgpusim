@@ -2,6 +2,7 @@ package emu
 
 import (
 	"log"
+	"math"
 
 	"github.com/sarchlab/mgpusim/v3/insts"
 )
@@ -10,8 +11,8 @@ import (
 func (u *ALUImpl) runVOPC(state InstEmuState) {
 	inst := state.Inst()
 	switch inst.Opcode {
-	// 	case 0x41: // v_cmp_lt_f32
-	// 		u.runVCmpLtF32(state)
+	case 0x41: // v_cmp_lt_f32
+		u.runVCmpLtF32(state)
 	// 	case 0x42: // v_cmp_eq_f32
 	// 		u.runVCmpEqF32(state)
 	// 	case 0x43: // v_cmp_le_f32
@@ -52,8 +53,8 @@ func (u *ALUImpl) runVOPC(state InstEmuState) {
 		// 		u.runVCmpLeU32(state)
 	case 0xCC: // v_cmp_gt_u32
 		u.runVCmpGtU32(state)
-		// 	case 0xCD: // v_cmp_ne_u32
-		// 		u.runVCmpNeU32(state)
+	case 0xCD: // v_cmp_ne_u32
+		u.runVCmpNeU32(state)
 	case 0xCE: // v_cmp_ge_u32
 		u.runVCmpGeU32(state)
 	// 	case 0xE8:
@@ -77,22 +78,24 @@ func (u *ALUImpl) runVOPC(state InstEmuState) {
 	}
 }
 
-// func (u *ALUImpl) runVCmpLtF32(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOPC()
-// 	sp.VCC = 0
-// 	var i uint
-// 	var src0, src1 float32
-// 	for i = 0; i < 64; i++ {
-// 		if !laneMasked(sp.EXEC, i) {
-// 			continue
-// 		}
-// 		src0 = math.Float32frombits(uint32(sp.SRC0[i]))
-// 		src1 = math.Float32frombits(uint32(sp.SRC1[i]))
-// 		if src0 < src1 {
-// 			sp.VCC = sp.VCC | (1 << i)
-// 		}
-// 	}
-// }
+func (u *ALUImpl) runVCmpLtF32(state InstEmuState) {
+	vcc := uint64(0)
+	var i int
+	var src0, src1 float32
+	inst := state.Inst()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	for i = 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
+		src0 = math.Float32frombits(uint32(u.ReadOperand(state, inst.Src0, i, nil)))
+		src1 = math.Float32frombits(uint32(u.ReadOperand(state, inst.Src1, i, nil)))
+		if src0 < src1 {
+			vcc |= (1 << i)
+		}
+	}
+	state.WriteReg(insts.Regs[insts.VCC], 1, 0, vcc)
+}
 
 // func (u *ALUImpl) runVCmpEqF32(state InstEmuState) {
 // 	sp := state.Scratchpad().AsVOPC()
@@ -441,18 +444,24 @@ func (u *ALUImpl) runVCmpGtU32(state InstEmuState) {
 	state.WriteReg(insts.Regs[insts.VCC], 1, 0, vcc)
 }
 
-// func (u *ALUImpl) runVCmpNeU32(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOPC()
-// 	sp.VCC = 0
-// 	var i uint
-// 	for i = 0; i < 64; i++ {
-// 		if laneMasked(sp.EXEC, i) {
-// 			if sp.SRC0[i] != sp.SRC1[i] {
-// 				sp.VCC = sp.VCC | (1 << i)
-// 			}
-// 		}
-// 	}
-// }
+func (u *ALUImpl) runVCmpNeU32(state InstEmuState) {
+	// sp := state.Scratchpad().AsVOPC()
+	// sp.VCC = 0
+	vcc := uint64(0)
+	var i int
+	inst := state.Inst()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	for i = 0; i < 64; i++ {
+		if laneMasked(exec, uint(i)) {
+			src0 := u.ReadOperand(state, inst.Src0, i, nil)
+			src1 := u.ReadOperand(state, inst.Src1, i, nil)
+			if src0 != src1 {
+				vcc |= (1 << i)
+			}
+		}
+	}
+	state.WriteReg(insts.Regs[insts.VCC], 1, 0, vcc)
+}
 
 func (u *ALUImpl) runVCmpGeU32(state InstEmuState) {
 	vcc := uint64(0)
