@@ -173,8 +173,8 @@
             "program": "${workspaceFolder}/samples/fir",
             "args": [
                 "-timing",
-                "-length=8192",
-                "-report-all",
+                "-length=64",
+                // "-report-all",
             ],
         },
         {
@@ -290,7 +290,7 @@
             "mode": "debug",
             "program": "${workspaceFolder}/samples/relu",
             "args": [
-                // "-timing",
+                "-timing",
                 "-length=64"
             ]
         },
