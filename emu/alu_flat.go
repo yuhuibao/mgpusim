@@ -19,8 +19,8 @@ func (u *ALUImpl) runFlat(state InstEmuState) {
 		u.runFlatLoadDWord(state)
 	// case 21:
 	// 	u.runFlatLoadDWordX2(state)
-	// case 23:
-	// 	u.runFlatLoadDWordX4(state)
+	case 23:
+		u.runFlatLoadDWordX4(state)
 	case 28:
 		u.runFlatStoreDWord(state)
 	case 29:
@@ -105,22 +105,26 @@ func (u *ALUImpl) runFlatLoadDWord(state InstEmuState) {
 // 	}
 // }
 
-// func (u *ALUImpl) runFlatLoadDWordX4(state InstEmuState) {
-// 	sp := state.Scratchpad().AsFlat()
-// 	pid := state.PID()
-// 	for i := uint(0); i < 64; i++ {
-// 		if !laneMasked(sp.EXEC, i) {
-// 			continue
-// 		}
+func (u *ALUImpl) runFlatLoadDWordX4(state InstEmuState) {
+	inst := state.Inst()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	pid := state.PID()
+	for i := 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
+		addr := u.ReadOperand(state, inst.Addr, i, nil)
 
-// 		buf := u.storageAccessor.Read(pid, sp.ADDR[i], uint64(16))
+		buf := u.storageAccessor.Read(pid, addr, uint64(16))
+		var buffer []uint32
+		for ii := 0; ii < 16; ii += 4 {
+			num := uint32(buf[ii]) | uint32(buf[ii+1])<<8 | uint32(buf[ii+2])<<16 | uint32(buf[ii+3])<<24
+			buffer = append(buffer, num)
+		}
 
-// 		sp.DST[i*4] = insts.BytesToUint32(buf[0:4])
-// 		sp.DST[i*4+1] = insts.BytesToUint32(buf[4:8])
-// 		sp.DST[i*4+2] = insts.BytesToUint32(buf[8:12])
-// 		sp.DST[i*4+3] = insts.BytesToUint32(buf[12:16])
-// 	}
-// }
+		u.WriteOperand(state, inst.Dst, i, 0, buffer)
+	}
+}
 
 func (u *ALUImpl) runFlatStoreDWord(state InstEmuState) {
 	inst := state.Inst()

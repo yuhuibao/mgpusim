@@ -159,37 +159,41 @@ var _ = Describe("ALU", func() {
 	// 	}
 	// })
 
-	// It("should run FLAT_LOAD_DWORDX4", func() {
-	// 	for i := 0; i < 64; i++ {
-	// 		pageTable.EXPECT().
-	// 			Find(vm.PID(1), uint64(i*16)).
-	// 			Return(vm.Page{
-	// 				PAddr: uint64(0),
-	// 			}, true)
-	// 	}
-	// 	state.inst = insts.NewInst()
-	// 	state.inst.FormatType = insts.FLAT
-	// 	state.inst.Opcode = 23
+	It("should run FLAT_LOAD_DWORDX4", func() {
+		for i := 0; i < 64; i++ {
+			pageTable.EXPECT().
+				Find(vm.PID(1), uint64(i*16)).
+				Return(vm.Page{
+					PAddr: uint64(0),
+				}, true)
+		}
+		inst := insts.NewInst()
+		inst.FormatType = insts.FLAT
+		inst.Opcode = 23
+		inst.Addr = insts.NewVRegOperand(0, 0, 2)
+		inst.Dst = insts.NewVRegOperand(2, 2, 4)
+		wf.inst = inst
 
-	// 	layout := state.Scratchpad().AsFlat()
-	// 	for i := 0; i < 64; i++ {
-	// 		layout.ADDR[i] = uint64(i * 16)
-	// 		storage.Write(uint64(i*16), insts.Uint32ToBytes(uint32(i)))
-	// 		storage.Write(uint64(i*16+4), insts.Uint32ToBytes(uint32(i)))
-	// 		storage.Write(uint64(i*16+8), insts.Uint32ToBytes(uint32(i)))
-	// 		storage.Write(uint64(i*16+12), insts.Uint32ToBytes(uint32(i)))
-	// 	}
-	// 	layout.EXEC = 0xffffffffffffffff
+		for i := 0; i < 64; i++ {
+			wf.WriteReg(insts.VReg(0), 2, i, uint64(i*16))
+			storage.Write(uint64(i*16), insts.Uint32ToBytes(uint32(i)))
+			storage.Write(uint64(i*16+4), insts.Uint32ToBytes(uint32(i)))
+			storage.Write(uint64(i*16+8), insts.Uint32ToBytes(uint32(i)))
+			storage.Write(uint64(i*16+12), insts.Uint32ToBytes(uint32(i)))
+		}
+		wf.WriteReg(insts.Regs[insts.EXEC], 2, 0, 0xffffffffffffffff)
 
-	// 	alu.Run(state)
+		alu.Run(wf)
 
-	// 	for i := 0; i < 64; i++ {
-	// 		Expect(layout.DST[i*4]).To(Equal(uint32(i)))
-	// 		Expect(layout.DST[i*4+1]).To(Equal(uint32(i)))
-	// 		Expect(layout.DST[i*4+2]).To(Equal(uint32(i)))
-	// 		Expect(layout.DST[i*4+3]).To(Equal(uint32(i)))
-	// 	}
-	// })
+		for i := 0; i < 64; i++ {
+			buf := make([]uint32, 4)
+			wf.ReadReg2Plus(insts.VReg(2), 4, i, buf)
+			Expect(buf[0]).To(Equal(uint32(i)))
+			Expect(buf[1]).To(Equal(uint32(i)))
+			Expect(buf[2]).To(Equal(uint32(i)))
+			Expect(buf[3]).To(Equal(uint32(i)))
+		}
+	})
 
 	// It("should run FLAT_STORE_DWORD", func() {
 	// 	for i := 0; i < 64; i++ {
