@@ -1,90 +1,88 @@
 package emu
 
-// import (
-// 	"log"
-// )
+import (
+	"log"
 
-// func (u *ALUImpl) runDS(state InstEmuState) {
-// 	inst := state.Inst()
-// 	switch inst.Opcode {
-// 	case 13:
-// 		u.runDSWRITEB32(state)
-// 	case 14:
-// 		u.runDSWRITE2B32(state)
-// 	case 54:
-// 		u.runDSREADB32(state)
-// 	case 55:
-// 		u.runDSREAD2B32(state)
-// 	case 78:
-// 		u.runDSWRITE2B64(state)
-// 	case 118:
-// 		u.runDSREADB64(state)
-// 	case 119:
-// 		u.runDSREAD2B64(state)
-// 	default:
-// 		log.Panicf("Opcode %d for DS format is not implemented", inst.Opcode)
-// 	}
-// }
+	"github.com/sarchlab/mgpusim/v3/insts"
+)
 
-// func (u *ALUImpl) runDSWRITEB32(state InstEmuState) {
-// 	inst := state.Inst()
-// 	sp := state.Scratchpad()
-// 	layout := sp.AsDS()
-// 	lds := u.LDS()
+func (u *ALUImpl) runDS(state InstEmuState) {
+	inst := state.Inst()
+	switch inst.Opcode {
+	case 13:
+		u.runDSWRITEB32(state)
+	case 14:
+		u.runDSWRITE2B32(state)
+	case 54:
+		u.runDSREADB32(state)
+	// case 55:
+	// 	u.runDSREAD2B32(state)
+	// case 78:
+	// 	u.runDSWRITE2B64(state)
+	case 118:
+		u.runDSREADB64(state)
+	// case 119:
+	// 	u.runDSREAD2B64(state)
+	default:
+		log.Panicf("Opcode %d for DS format is not implemented", inst.Opcode)
+	}
+}
 
-// 	i := uint(0)
-// 	for i = 0; i < 64; i++ {
-// 		if !laneMasked(layout.EXEC, i) {
-// 			continue
-// 		}
+func (u *ALUImpl) runDSWRITEB32(state InstEmuState) {
+	inst := state.Inst()
+	lds := u.LDS()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
 
-// 		addr0 := layout.ADDR[i] + inst.Offset0
-// 		data0offset := uint(8 + 64*4)
+	for i := 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
+		addr := u.ReadOperand(state, inst.Addr, i, nil)
 
-// 		copy(lds[addr0:addr0+4], sp[data0offset+i*16:data0offset+i*16+4])
-// 	}
-// }
+		addr0 := uint32(addr) + inst.Offset0
+		data := u.ReadOperand(state, inst.Data, i, nil)
 
-// func (u *ALUImpl) runDSWRITE2B32(state InstEmuState) {
-// 	inst := state.Inst()
-// 	sp := state.Scratchpad()
-// 	layout := sp.AsDS()
-// 	lds := u.LDS()
+		copy(lds[addr0:addr0+4], insts.Uint32ToBytes(uint32(data)))
+	}
+}
 
-// 	i := uint(0)
-// 	for i = 0; i < 64; i++ {
-// 		if !laneMasked(layout.EXEC, i) {
-// 			continue
-// 		}
+func (u *ALUImpl) runDSWRITE2B32(state InstEmuState) {
+	inst := state.Inst()
+	lds := u.LDS()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
 
-// 		addr0 := layout.ADDR[i] + inst.Offset0*4
-// 		data0offset := uint(8 + 64*4)
-// 		addr1 := layout.ADDR[i] + inst.Offset1*4
-// 		data1offset := uint(8 + 64*4 + 256*4)
+	for i := 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
+		addr := u.ReadOperand(state, inst.Addr, i, nil)
 
-// 		copy(lds[addr0:addr0+4], sp[data0offset+i*16:data0offset+i*16+4])
-// 		copy(lds[addr1:addr1+4], sp[data1offset+i*16:data1offset+i*16+4])
-// 	}
-// }
+		addr0 := uint32(addr) + inst.Offset0*4
+		addr1 := uint32(addr) + inst.Offset1*4
+		data := u.ReadOperand(state, inst.Data, i, nil)
+		data1 := u.ReadOperand(state, inst.Data1, i, nil)
 
-// func (u *ALUImpl) runDSREADB32(state InstEmuState) {
-// 	inst := state.Inst()
-// 	sp := state.Scratchpad()
-// 	layout := sp.AsDS()
-// 	lds := u.LDS()
+		copy(lds[addr0:addr0+4], insts.Uint32ToBytes(uint32(data)))
+		copy(lds[addr1:addr1+4], insts.Uint32ToBytes(uint32(data1)))
+	}
+}
 
-// 	i := uint(0)
-// 	for i = 0; i < 64; i++ {
-// 		if !laneMasked(layout.EXEC, i) {
-// 			continue
-// 		}
+func (u *ALUImpl) runDSREADB32(state InstEmuState) {
+	inst := state.Inst()
+	lds := u.LDS()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
 
-// 		addr0 := layout.ADDR[i] + inst.Offset0
-// 		// addr0 := layout.ADDR[i]
-// 		dstOffset := uint(8 + 64*4 + 256*4*2)
-// 		copy(sp[dstOffset+i*16:dstOffset+i*16+4], lds[addr0:addr0+4])
-// 	}
-// }
+	for i := 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
+		addr := u.ReadOperand(state, inst.Addr, i, nil)
+
+		addr0 := uint32(addr) + inst.Offset0
+
+		u.WriteOperand(state, inst.Dst, i, uint64(insts.BytesToUint32(lds[addr0:addr0+4])), nil)
+	}
+}
 
 // func (u *ALUImpl) runDSREAD2B32(state InstEmuState) {
 // 	inst := state.Inst()
@@ -129,22 +127,20 @@ package emu
 // 	}
 // }
 
-// func (u *ALUImpl) runDSREADB64(state InstEmuState) {
-// 	sp := state.Scratchpad()
-// 	layout := sp.AsDS()
-// 	lds := u.LDS()
+func (u *ALUImpl) runDSREADB64(state InstEmuState) {
+	inst := state.Inst()
+	lds := u.LDS()
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
 
-// 	i := uint(0)
-// 	for i = 0; i < 64; i++ {
-// 		if !laneMasked(layout.EXEC, i) {
-// 			continue
-// 		}
+	for i := 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
+		addr := u.ReadOperand(state, inst.Addr, i, nil)
 
-// 		addr := layout.ADDR[i]
-// 		dstOffset := uint(8 + 64*4 + 256*4*2)
-// 		copy(sp[dstOffset+i*16:dstOffset+i*16+8], lds[addr:addr+8])
-// 	}
-// }
+		u.WriteOperand(state, inst.Dst, i, insts.BytesToUint64(lds[addr:addr+8]), nil)
+	}
+}
 
 // func (u *ALUImpl) runDSREAD2B64(state InstEmuState) {
 // 	inst := state.Inst()
