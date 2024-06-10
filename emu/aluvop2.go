@@ -25,8 +25,8 @@ func (u *ALUImpl) runVOP2(state InstEmuState) {
 		u.runVMULF32(state)
 		// 	case 6:
 		// 		u.runVMULI32I24(state)
-		// 	case 8:
-		// 		u.runVMULU32U24(state)
+	case 8:
+		u.runVMULU32U24(state)
 		// 	case 10:
 		// 		u.runVMINF32(state)
 	case 11:
@@ -203,20 +203,24 @@ func (u *ALUImpl) runVMULF32(state InstEmuState) {
 // 	}
 // }
 
-// func (u *ALUImpl) runVMULU32U24(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOP2()
-
-// 	for i := 0; i < 64; i++ {
-// 		if !laneMasked(sp.EXEC, uint(i)) {
-// 			continue
-// 		}
-
-// 		src0 := (uint32(sp.SRC0[i]) << 8) >> 8
-// 		src1 := (uint32(sp.SRC1[i]) << 8) >> 8
-// 		dst := src0 * src1
-// 		sp.DST[i] = uint64(dst)
-// 	}
-// }
+func (u *ALUImpl) runVMULU32U24(state InstEmuState) {
+	// sp := state.Scratchpad().AsVOP2()
+	inst := state.Inst()
+	var i int
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	for i = 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
+		src0 := (uint32(u.ReadOperand(state, inst.Src0, i, nil)) << 8) >> 8
+		src1 := (uint32(u.ReadOperand(state, inst.Src1, i, nil)) << 8) >> 8
+		// src0 := (uint32(sp.SRC0[i]) << 8) >> 8
+		// src1 := (uint32(sp.SRC1[i]) << 8) >> 8
+		dst := src0 * src1
+		// sp.DST[i] = uint64(dst)
+		u.WriteOperand(state, inst.Dst, i, uint64(dst), nil)
+	}
+}
 
 // func (u *ALUImpl) runVMINF32(state InstEmuState) {
 // 	sp := state.Scratchpad().AsVOP2()

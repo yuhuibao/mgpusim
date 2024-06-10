@@ -1,30 +1,30 @@
 package emu
 
-// import (
-// 	"log"
-// )
+import (
+	"log"
+)
 
-// func (u *ALUImpl) runDS(state InstEmuState) {
-// 	inst := state.Inst()
-// 	switch inst.Opcode {
-// 	case 13:
-// 		u.runDSWRITEB32(state)
-// 	case 14:
-// 		u.runDSWRITE2B32(state)
-// 	case 54:
-// 		u.runDSREADB32(state)
-// 	case 55:
-// 		u.runDSREAD2B32(state)
-// 	case 78:
-// 		u.runDSWRITE2B64(state)
-// 	case 118:
-// 		u.runDSREADB64(state)
-// 	case 119:
-// 		u.runDSREAD2B64(state)
-// 	default:
-// 		log.Panicf("Opcode %d for DS format is not implemented", inst.Opcode)
-// 	}
-// }
+func (u *ALUImpl) runDS(state InstEmuState) {
+	inst := state.Inst()
+	switch inst.Opcode {
+	// 	case 13:
+	// 		u.runDSWRITEB32(state)
+	// 	case 14:
+	// 		u.runDSWRITE2B32(state)
+	// 	case 54:
+	// 		u.runDSREADB32(state)
+	// 	case 55:
+	// 		u.runDSREAD2B32(state)
+	// case 78:
+	// 	u.runDSWRITE2B64(state)
+	// 	case 118:
+	// 		u.runDSREADB64(state)
+	// 	case 119:
+	// 		u.runDSREAD2B64(state)
+	default:
+		log.Panicf("Opcode %d for DS format is not implemented", inst.Opcode)
+	}
+}
 
 // func (u *ALUImpl) runDSWRITEB32(state InstEmuState) {
 // 	inst := state.Inst()
