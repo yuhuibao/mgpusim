@@ -227,7 +227,7 @@ func (c defaultCoalescer) addLaneInfo(
 		}
 
 		for j := 0; j < regCount; j++ {
-			addr := wf.ReadReg(inst.Data.Register, 2, int(i)) + uint64(j*4)
+			addr := wf.ReadReg(inst.Addr.Register, 2, int(i)) + uint64(j*4)
 			reg := insts.VReg(wf.Inst().Dst.Register.RegIndex() + j)
 			if c.isInSameCacheLine(addr, req.Address) {
 				laneInfo := vectorMemAccessLaneInfo{

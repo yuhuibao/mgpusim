@@ -120,17 +120,10 @@ var _ = Describe("ALU", func() {
 		inst.Dst = insts.NewVRegOperand(2, 2, 2)
 		wf.inst = inst
 
-		// state.inst = insts.NewInst()
-		// state.inst.FormatType = insts.FLAT
-		// state.inst.Opcode = 20
-
-		// layout := state.Scratchpad().AsFlat()
 		for i := 0; i < 64; i++ {
 			wf.WriteReg(insts.VReg(0), 2, i, uint64(i*4))
-			// layout.ADDR[i] = uint64(i * 4)
 			storage.Write(uint64(i*4), insts.Uint32ToBytes(uint32(i)))
 		}
-		// layout.EXEC = 0xffffffffffffffff
 		wf.WriteReg(insts.Regs[insts.EXEC], 2, 0, 0xffffffffffffffff)
 
 		alu.Run(wf)
@@ -138,7 +131,6 @@ var _ = Describe("ALU", func() {
 		for i := 0; i < 64; i++ {
 			results := wf.ReadReg(insts.VReg(2), 2, i)
 			Expect(results).To(Equal((uint64(i))))
-			// Expect(layout.DST[i*4]).To(Equal(uint32(i)))
 		}
 	})
 
@@ -157,18 +149,12 @@ var _ = Describe("ALU", func() {
 		inst.Dst = insts.NewVRegOperand(2, 2, 2)
 		wf.inst = inst
 
-		// state.inst = insts.NewInst()
-		// state.inst.FormatType = insts.FLAT
-		// state.inst.Opcode = 21
-
-		// layout := state.Scratchpad().AsFlat()
 		for i := 0; i < 64; i++ {
 			wf.WriteReg(insts.VReg(0), 2, i, uint64(i*8))
-			// layout.ADDR[i] = uint64(i * 8)
 			storage.Write(uint64(i*8), insts.Uint32ToBytes(uint32(i)))
 			storage.Write(uint64(i*8+4), insts.Uint32ToBytes(uint32(i)))
 		}
-		// layout.EXEC = 0xffffffffffffffff
+
 		wf.WriteReg(insts.Regs[insts.EXEC], 2, 0, 0xffffffffffffffff)
 
 		alu.Run(wf)
@@ -177,11 +163,8 @@ var _ = Describe("ALU", func() {
 			results := wf.ReadReg(insts.VReg(2), 2, i)
 			buf_0 := results & 0x00000000ffffffff
 			buf_1 := (results & 0xffffffff00000000) >> 32
-			// buf := insts.Uint32ToBytes(uint32(results))
 			Expect(buf_0).To(Equal(uint64(i)))
 			Expect(buf_1).To(Equal(uint64(i)))
-			// Expect(layout.DST[i*4]).To(Equal(uint32(i)))
-			// Expect(layout.DST[i*4+1]).To(Equal(uint32(i)))
 		}
 	})
 
@@ -196,13 +179,12 @@ var _ = Describe("ALU", func() {
 		inst := insts.NewInst()
 		inst.FormatType = insts.FLAT
 		inst.Opcode = 23
-		inst.Addr = insts.NewVRegOperand(0, 0, 4)
-		inst.Dst = insts.NewVRegOperand(4, 4, 4)
+		inst.Addr = insts.NewVRegOperand(0, 0, 2)
+		inst.Dst = insts.NewVRegOperand(2, 2, 4)
 		wf.inst = inst
 
 		for i := 0; i < 64; i++ {
-			wf.WriteReg(insts.VReg(0), 4, i, uint64(i*16))
-			// layout.ADDR[i] = uint64(i * 16)
+			wf.WriteReg(insts.VReg(0), 2, i, uint64(i*16))
 			storage.Write(uint64(i*16), insts.Uint32ToBytes(uint32(i)))
 			storage.Write(uint64(i*16+4), insts.Uint32ToBytes(uint32(i)))
 			storage.Write(uint64(i*16+8), insts.Uint32ToBytes(uint32(i)))
@@ -213,16 +195,12 @@ var _ = Describe("ALU", func() {
 		alu.Run(wf)
 
 		for i := 0; i < 64; i++ {
-			results := wf.ReadReg(insts.VReg(4), 4, i)
-			buf_0 := results & 0x000000000000ffff
-			buf_1 := (results & 0x00000000ffff0000) >> 16
-			buf_2 := (results & 0x0000ffff00000000) >> 32
-			buf_3 := (results & 0xffff000000000000) >> 48
-
-			Expect(buf_0).To(Equal(uint64(i)))
-			Expect(buf_1).To(Equal(uint64(i)))
-			Expect(buf_2).To(Equal(uint64(i)))
-			Expect(buf_3).To(Equal(uint64(i)))
+			buf := make([]uint32, 4)
+			wf.ReadReg2Plus(insts.VReg(2), 4, i, buf)
+			Expect(buf[0]).To(Equal(uint32(i)))
+			Expect(buf[1]).To(Equal(uint32(i)))
+			Expect(buf[2]).To(Equal(uint32(i)))
+			Expect(buf[3]).To(Equal(uint32(i)))
 		}
 	})
 

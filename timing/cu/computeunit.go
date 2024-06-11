@@ -472,6 +472,14 @@ func (cu *ComputeUnit) handleScalarDataLoadReturn(
 			buffer = append(buffer, num)
 		}
 		wf.WriteReg2Plus(info.DstSGPR, regCount, 0, buffer)
+	case 8:
+		var buffer []uint32
+		for i := 0; i < 32; i += 4 {
+			num := uint32(rsp.Data[i]) | uint32(rsp.Data[i+1])<<8 | uint32(rsp.Data[i+2])<<16 | uint32(rsp.Data[i+3])<<24
+			buffer = append(buffer, num)
+		}
+		wf.WriteReg2Plus(info.DstSGPR, regCount, 0, buffer)
+
 	}
 
 	cu.InFlightScalarMemAccess = cu.InFlightScalarMemAccess[1:]
