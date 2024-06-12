@@ -121,8 +121,8 @@ func (u *ALUImpl) runDSWRITE2B64(state InstEmuState) {
 		data := u.ReadOperand(state, inst.Data, i, nil)
 		data1 := u.ReadOperand(state, inst.Data1, i, nil)
 
-		copy(lds[addr0:addr0+8], insts.Uint32ToBytes(uint32(data)))
-		copy(lds[addr1:addr1+8], insts.Uint32ToBytes(uint32(data1)))
+		copy(lds[addr0:addr0+8], insts.Uint64ToBytes(data))
+		copy(lds[addr1:addr1+8], insts.Uint64ToBytes(data1))
 
 		// addr0 := layout.ADDR[i] + inst.Offset0*8
 		// data0Offset := uint(8 + 64*4)

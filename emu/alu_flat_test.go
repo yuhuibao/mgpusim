@@ -117,7 +117,7 @@ var _ = Describe("ALU", func() {
 		inst.FormatType = insts.FLAT
 		inst.Opcode = 20
 		inst.Addr = insts.NewVRegOperand(0, 0, 2)
-		inst.Dst = insts.NewVRegOperand(2, 2, 2)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 		wf.inst = inst
 
 		for i := 0; i < 64; i++ {
@@ -129,7 +129,7 @@ var _ = Describe("ALU", func() {
 		alu.Run(wf)
 
 		for i := 0; i < 64; i++ {
-			results := wf.ReadReg(insts.VReg(2), 2, i)
+			results := wf.ReadReg(insts.VReg(2), 1, i)
 			Expect(results).To(Equal((uint64(i))))
 		}
 	})
@@ -161,10 +161,10 @@ var _ = Describe("ALU", func() {
 
 		for i := 0; i < 64; i++ {
 			results := wf.ReadReg(insts.VReg(2), 2, i)
-			buf_0 := results & 0x00000000ffffffff
-			buf_1 := (results & 0xffffffff00000000) >> 32
-			Expect(buf_0).To(Equal(uint64(i)))
-			Expect(buf_1).To(Equal(uint64(i)))
+			bufL := results & 0x00000000ffffffff
+			bufH := (results & 0xffffffff00000000) >> 32
+			Expect(bufL).To(Equal(uint64(i)))
+			Expect(bufH).To(Equal(uint64(i)))
 		}
 	})
 
