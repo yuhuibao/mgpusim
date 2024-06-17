@@ -105,29 +105,38 @@ var _ = Describe("ALU", func() {
 	// 		Expect(sp.DST[1]).To(Equal(uint32(2)))
 	// 	})
 
-	// 	It("should run DS_WRITE2_B64", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.DS
-	// 		state.inst.Opcode = 78
-	// 		state.inst.Offset0 = 1
-	// 		state.inst.Offset1 = 3
+	It("should run DS_WRITE2_B64", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.DS
+		inst.Opcode = 78
+		inst.Addr = insts.NewVRegOperand(0, 0, 1)
+		inst.Data = insts.NewVRegOperand(1, 1, 2)
+		inst.Data1 = insts.NewVRegOperand(3, 3, 2)
+		inst.Dst = insts.NewVRegOperand(5, 5, 1)
+		inst.Offset0 = 1
+		inst.Offset1 = 3
+		wf.inst = inst
 
-	// 		sp := state.scratchpad.AsDS()
-	// 		sp.EXEC = 0x1
-	// 		sp.ADDR[0] = 100
-	// 		sp.DATA[0] = 1
-	// 		sp.DATA[1] = 2
-	// 		sp.DATA1[0] = 3
-	// 		sp.DATA1[1] = 4
+		wf.Exec = 0x1
+		wf.WriteReg(insts.VReg(0), 1, 0, 100)
+		data := make([]uint32, 256)
+		data1 := make([]uint32, 256)
+		data[0] = 1
+		data[1] = 2
+		data1[0] = 3
+		data1[1] = 4
+		wf.WriteReg2Plus(insts.VReg(1), 2, 0, data)
+		wf.WriteReg2Plus(insts.VReg(3), 2, 0, data1)
+		lds := alu.LDS()
+		copy(lds[100:], insts.Uint64ToBytes(12))
 
-	// 		alu.Run(state)
+		alu.Run(wf)
 
-	// 		lds := alu.LDS()
-	// 		Expect(insts.BytesToUint32(lds[108:])).To(Equal(uint32(1)))
-	// 		Expect(insts.BytesToUint32(lds[112:])).To(Equal(uint32(2)))
-	// 		Expect(insts.BytesToUint32(lds[124:])).To(Equal(uint32(3)))
-	// 		Expect(insts.BytesToUint32(lds[128:])).To(Equal(uint32(4)))
-	// 	})
+		Expect(insts.BytesToUint32(lds[108:])).To(Equal(uint32(1)))
+		Expect(insts.BytesToUint32(lds[112:])).To(Equal(uint32(2)))
+		Expect(insts.BytesToUint32(lds[124:])).To(Equal(uint32(3)))
+		Expect(insts.BytesToUint32(lds[128:])).To(Equal(uint32(4)))
+	})
 
 	It("should run DS_READ_B64", func() {
 		inst := insts.NewInst()
@@ -148,25 +157,40 @@ var _ = Describe("ALU", func() {
 		Expect(result).To(Equal(uint64(12)))
 	})
 
-	// 	It("should run DS_READ2_B64", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.DS
-	// 		state.inst.Opcode = 119
-	// 		state.inst.Offset0 = 1
-	// 		state.inst.Offset1 = 3
+	It("should run DS_READ2_B64", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.DS
+		inst.Opcode = 119
+		inst.Addr = insts.NewVRegOperand(0, 0, 1)
+		inst.Dst = insts.NewVRegOperand(1, 1, 1)
+		wf.inst = inst
+		inst.Offset0 = 1
+		inst.Offset1 = 3
+		wf.Exec = 0x1
 
-	// 		sp := state.scratchpad.AsDS()
-	// 		sp.EXEC = 0x1
-	// 		sp.ADDR[0] = 100
+		wf.WriteReg(insts.VReg(0), 1, 0, 100)
+		lds := alu.LDS()
 
-	// 		lds := alu.LDS()
-	// 		copy(lds[108:], insts.Uint32ToBytes(12))
-	// 		copy(lds[124:], insts.Uint32ToBytes(156))
+		// state.inst = insts.NewInst()
+		// state.inst.FormatType = insts.DS
+		// state.inst.Opcode = 119
+		// state.inst.Offset0 = 1
+		// state.inst.Offset1 = 3
 
-	// 		alu.Run(state)
+		// sp := state.scratchpad.AsDS()
+		// sp.EXEC = 0x1
+		// sp.ADDR[0] = 100
 
-	// 		Expect(sp.DST[0]).To(Equal(uint32(12)))
-	// 		Expect(sp.DST[2]).To(Equal(uint32(156)))
-	// 	})
+		// lds := alu.LDS()
+		copy(lds[108:], insts.Uint32ToBytes(12))
+		copy(lds[124:], insts.Uint32ToBytes(156))
+
+		// alu.Run(state)
+		alu.Run(wf)
+
+		dst := wf.ReadReg(insts.VReg(1), 1, 0)
+		Expect(sp.DST[0]).To(Equal(uint32(12)))
+		Expect(sp.DST[2]).To(Equal(uint32(156)))
+	})
 
 })

@@ -188,9 +188,10 @@ func (u *ALUImpl) runFlatStoreDWordX4(state InstEmuState) {
 		if !laneMasked(exec, uint(i)) {
 			continue
 		}
-		var buffer []uint32
-		u.ReadOperand(state, inst.Data, i, buffer)
+		// var buffer []uint32
+		buffer := make([]uint32, 256)
 		addr := u.ReadOperand(state, inst.Addr, i, nil)
+		u.ReadOperand(state, inst.Data, i, buffer)
 
 		buf := make([]byte, 16)
 		copy(buf[0:4], insts.Uint32ToBytes(uint32(buffer[0])))
@@ -200,14 +201,9 @@ func (u *ALUImpl) runFlatStoreDWordX4(state InstEmuState) {
 
 		u.storageAccessor.Write(pid, addr, buf)
 
-		// copy(buf[0:4], insts.Uint32ToBytes(uint32(data)))
-		// copy(buf[4:8], insts.Uint32ToBytes(uint32(data>>32)))
-
 		// copy(buf[0:4], insts.Uint32ToBytes(sp.DATA[i*4]))
 		// copy(buf[4:8], insts.Uint32ToBytes(sp.DATA[(i*4)+1]))
 		// copy(buf[8:12], insts.Uint32ToBytes(sp.DATA[(i*4)+2]))
 		// copy(buf[12:16], insts.Uint32ToBytes(sp.DATA[(i*4)+3]))
-
-		// u.storageAccessor.Write(pid, addr, buf)
 	}
 }

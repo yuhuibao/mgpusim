@@ -121,16 +121,8 @@ func (u *ALUImpl) runDSWRITE2B64(state InstEmuState) {
 		data := u.ReadOperand(state, inst.Data, i, nil)
 		data1 := u.ReadOperand(state, inst.Data1, i, nil)
 
-		copy(lds[addr0:addr0+8], insts.Uint32ToBytes(uint32(data)))
-		copy(lds[addr1:addr1+8], insts.Uint32ToBytes(uint32(data1)))
-
-		// addr0 := layout.ADDR[i] + inst.Offset0*8
-		// data0Offset := uint(8 + 64*4)
-		// copy(lds[addr0:addr0+8], sp[data0Offset+i*16:data0Offset+i*16+8])
-
-		// addr1 := layout.ADDR[i] + inst.Offset1*8
-		// data1Offset := uint(8 + 64*4 + 256*4)
-		// copy(lds[addr1:addr1+8], sp[data1Offset+i*16:data1Offset+i*16+8])
+		copy(lds[addr0:addr0+8], insts.Uint64ToBytes(data))
+		copy(lds[addr1:addr1+8], insts.Uint64ToBytes(data1))
 	}
 }
 
@@ -162,7 +154,7 @@ func (u *ALUImpl) runDSREAD2B64(state InstEmuState) {
 		addr0 := uint32(addr) + inst.Offset0*8
 		addr1 := uint32(addr) + inst.Offset1*8
 
-		dst := uint64(insts.BytesToUint64(lds[addr0:addr0+8])) | uint64(insts.BytesToUint64(lds[addr1:addr1+8]))
+		dst := uint64(insts.BytesToUint64(lds[addr0:addr0+8]))>>32 | uint64(insts.BytesToUint64(lds[addr1:addr1+8]))
 		u.WriteOperand(state, inst.Dst, i, dst, nil)
 
 		// addr0 := layout.ADDR[i] + inst.Offset0*8
