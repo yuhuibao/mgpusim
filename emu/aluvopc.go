@@ -43,14 +43,14 @@ func (u *ALUImpl) runVOPC(state InstEmuState) {
 		u.runVCmpGtI32(state)
 		// 	case 0xC5: // v_cmp_lg_i32
 		// 		u.runVCmpLgI32(state)
-		// 	case 0xC6: // v_cmp_ge_i32
-		// 		u.runVCmpGeI32(state)
+	case 0xC6: // v_cmp_ge_i32
+		u.runVCmpGeI32(state)
 		// 	case 0xC9: // v_cmp_lt_u32
 		// 		u.runVCmpLtU32(state)
 	case 0xCA: // v_cmp_eq_u32
 		u.runVCmpEqU32(state)
-		// 	case 0xCB: // v_cmp_le_u32
-		// 		u.runVCmpLeU32(state)
+	case 0xCB: // v_cmp_le_u32
+		u.runVCmpLeU32(state)
 	case 0xCC: // v_cmp_gt_u32
 		u.runVCmpGtU32(state)
 	case 0xCD: // v_cmp_ne_u32
@@ -359,22 +359,25 @@ func (u *ALUImpl) runVCmpGtI32(state InstEmuState) {
 // 	}
 // }
 
-// func (u *ALUImpl) runVCmpGeI32(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOPC()
-// 	sp.VCC = 0
-// 	var i uint
-// 	for i = 0; i < 64; i++ {
-// 		if !laneMasked(sp.EXEC, i) {
-// 			continue
-// 		}
+func (u *ALUImpl) runVCmpGeI32(state InstEmuState) {
+	inst := state.Inst()
 
-// 		src0 := asInt32(uint32(sp.SRC0[i]))
-// 		src1 := asInt32(uint32(sp.SRC1[i]))
-// 		if src0 >= src1 {
-// 			sp.VCC = sp.VCC | (1 << i)
-// 		}
-// 	}
-// }
+	var i int
+	vcc := uint64(0)
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	for i = 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
+
+		src0 := asInt32(uint32(u.ReadOperand(state, inst.Src0, i, nil)))
+		src1 := asInt32(uint32(u.ReadOperand(state, inst.Src1, i, nil)))
+		if src0 >= src1 {
+			vcc |= 1 << i
+		}
+	}
+	state.WriteReg(insts.Regs[insts.VCC], 1, 0, vcc)
+}
 
 // func (u *ALUImpl) runVCmpLtU32(state InstEmuState) {
 // 	sp := state.Scratchpad().AsVOPC()
@@ -411,18 +414,25 @@ func (u *ALUImpl) runVCmpEqU32(state InstEmuState) {
 	state.WriteReg(insts.Regs[insts.VCC], 1, 0, vcc)
 }
 
-// func (u *ALUImpl) runVCmpLeU32(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOPC()
-// 	sp.VCC = 0
-// 	var i uint
-// 	for i = 0; i < 64; i++ {
-// 		if laneMasked(sp.EXEC, i) {
-// 			if sp.SRC0[i] <= sp.SRC1[i] {
-// 				sp.VCC = sp.VCC | (1 << i)
-// 			}
-// 		}
-// 	}
-// }
+func (u *ALUImpl) runVCmpLeU32(state InstEmuState) {
+	inst := state.Inst()
+
+	var i int
+	vcc := uint64(0)
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	for i = 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
+		src0 := u.ReadOperand(state, inst.Src0, i, nil)
+		src1 := u.ReadOperand(state, inst.Src1, i, nil)
+
+		if src0 <= src1 {
+			vcc |= 1 << i
+		}
+	}
+	state.WriteReg(insts.Regs[insts.VCC], 1, 0, vcc)
+}
 
 func (u *ALUImpl) runVCmpGtU32(state InstEmuState) {
 	inst := state.Inst()
