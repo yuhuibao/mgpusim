@@ -121,7 +121,6 @@ var _ = Describe("ALU", func() {
 		wf.inst = inst
 
 		wf.Exec = 0x1
-
 		wf.WriteReg(insts.VReg(0), 1, 0, 100)
 		wf.WriteReg(insts.VReg(1), 2, 0, 2<<32+1)
 		wf.WriteReg(insts.VReg(3), 2, 0, 4<<32+3)
