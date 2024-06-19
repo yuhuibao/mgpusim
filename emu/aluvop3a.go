@@ -51,8 +51,8 @@ func (u *ALUImpl) runVOP3A(state InstEmuState) {
 		// 		u.runVMADF32(state)
 		// 	case 450:
 		// 		u.runVMADI32I24(state)
-		// 	case 451, 488:
-		// 		u.runVMADU64U32(state)
+	case 451, 488:
+		u.runVMADU64U32(state)
 		// 	case 460:
 		// 		u.runVFMAF64(state)
 		// 	case 464:
@@ -573,18 +573,20 @@ func (u *ALUImpl) runVCNDMASKB32VOP3a(state InstEmuState) {
 // 	}
 // }
 
-// func (u *ALUImpl) runVMADU64U32(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOP3A()
-
-// 	var i uint
-// 	for i = 0; i < 64; i++ {
-// 		if !laneMasked(sp.EXEC, i) {
-// 			continue
-// 		}
-
-// 		sp.DST[i] = sp.SRC0[i]*sp.SRC1[i] + sp.SRC2[i]
-// 	}
-// }
+func (u *ALUImpl) runVMADU64U32(state InstEmuState) {
+	inst := state.Inst()
+	var i int
+	exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+	for i = 0; i < 64; i++ {
+		if !laneMasked(exec, uint(i)) {
+			continue
+		}
+		src2 := u.ReadOperand(state, inst.Src2, i, nil)
+		src1 := u.ReadOperand(state, inst.Src1, i, nil)
+		src0 := u.ReadOperand(state, inst.Src0, i, nil)
+		u.WriteOperand(state, inst.Dst, i, src0*src1+src2, nil)
+	}
+}
 
 func (u *ALUImpl) runVMULLOU32(state InstEmuState) {
 	inst := state.Inst()

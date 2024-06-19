@@ -49,8 +49,8 @@ func (u *ALUImpl) runVOP2(state InstEmuState) {
 		u.runVANDB32(state)
 		// 	case 20:
 		// 		u.runVORB32(state)
-		// 	case 21:
-		// 		u.runVXORB32(state)
+	case 21:
+		u.runVXORB32(state)
 	case 22:
 		u.runVMACF32(state)
 		// 	case 24:
@@ -476,34 +476,40 @@ func (u *ALUImpl) runVANDB32(state InstEmuState) {
 // 	}
 // }
 
-// func (u *ALUImpl) runVXORB32(state InstEmuState) {
-// 	sp := state.Scratchpad().AsVOP2()
-// 	inst := state.Inst()
-// 	var i uint
-// 	if inst.IsSdwa == false {
-// 		for i = 0; i < 64; i++ {
-// 			if !laneMasked(sp.EXEC, i) {
-// 				continue
-// 			}
-// 			src0 := uint32(sp.SRC0[i])
-// 			src1 := uint32(sp.SRC1[i])
-// 			dst := src0 ^ src1
-// 			sp.DST[i] = uint64(dst)
-// 		}
-// 	} else {
-// 		for i = 0; i < 64; i++ {
-// 			if !laneMasked(sp.EXEC, i) {
-// 				continue
-// 			}
-// 			src0 := u.sdwaSrcSelect(uint32(sp.SRC0[i]), inst.Src0Sel)
-// 			src1 := u.sdwaSrcSelect(uint32(sp.SRC1[i]), inst.Src1Sel)
-// 			dst := src0 ^ src1
-// 			dst = u.sdwaDstSelect(uint32(sp.DST[i]), dst,
-// 				inst.DstSel, inst.DstUnused)
-// 			sp.DST[i] = uint64(dst)
-// 		}
-// 	}
-// }
+func (u *ALUImpl) runVXORB32(state InstEmuState) {
+	inst := state.Inst()
+	var i int
+	if !inst.IsSdwa {
+		exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+		for i = 0; i < 64; i++ {
+			if !laneMasked(exec, uint(i)) {
+				continue
+			}
+			src0 := uint32(u.ReadOperand(state, inst.Src0, i, nil))
+			src1 := uint32(u.ReadOperand(state, inst.Src1, i, nil))
+			dst := src0 ^ src1
+			u.WriteOperand(state, inst.Dst, i, uint64(dst), nil)
+		}
+	} else {
+		exec := state.ReadReg(insts.Regs[insts.EXEC], 1, 0)
+		for i = 0; i < 64; i++ {
+			if !laneMasked(exec, uint(i)) {
+				continue
+			}
+			src0 := uint32(u.ReadOperand(state, inst.Src0, i, nil))
+			src1 := uint32(u.ReadOperand(state, inst.Src1, i, nil))
+			src0 = u.sdwaSrcSelect(src0, inst.Src0Sel)
+			src1 = u.sdwaSrcSelect(src1, inst.Src1Sel)
+			dst := src0 ^ src1
+			dst = u.sdwaDstSelect(uint32(0), dst,
+				inst.DstSel, inst.DstUnused)
+			u.WriteOperand(state, inst.Dst, i, uint64(dst), nil)
+			// dst = u.sdwaDstSelect(uint32(sp.DST[i]), dst,
+			// 	inst.DstSel, inst.DstUnused)
+			// sp.DST[i] = uint64(dst)
+		}
+	}
+}
 
 func (u *ALUImpl) runVMACF32(state InstEmuState) {
 	inst := state.Inst()

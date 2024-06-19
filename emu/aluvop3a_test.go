@@ -375,21 +375,24 @@ var _ = Describe("ALU", func() {
 	// 		Expect(sp.DST[0] & 0xffffffff).To(Equal(uint64(150)))
 	// 	})
 
-	// 	It("should run V_MAD_U32_U24", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP3a
-	// 		state.inst.Opcode = 451
+	It("should run V_MAD_U32_U24", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP3a
+		inst.Opcode = 451
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
+		inst.Src2 = insts.NewVRegOperand(2, 2, 1)
+		inst.Dst = insts.NewVRegOperand(3, 3, 1)
 
-	// 		sp := state.Scratchpad().AsVOP3A()
-	// 		sp.SRC0[0] = 10
-	// 		sp.SRC1[0] = 20
-	// 		sp.SRC2[0] = 50
-	// 		sp.EXEC = 1
-
-	// 		alu.Run(state)
-
-	// 		Expect(sp.DST[0]).To(Equal(uint64(250)))
-	// 	})
+		wf.inst = inst
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 1)
+		wf.WriteReg(insts.VReg(0), 1, 0, 10)
+		wf.WriteReg(insts.VReg(1), 1, 0, 20)
+		wf.WriteReg(insts.VReg(2), 1, 0, 50)
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.VReg(3), 1, 0)
+		Expect(dst).To(Equal(uint64(250)))
+	})
 
 	// 	It("should run V_MIN3_F32", func() {
 	// 		state.inst = insts.NewInst()

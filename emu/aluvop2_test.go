@@ -420,38 +420,45 @@ var _ = Describe("ALU", func() {
 	// 		Expect(uint32(sp.DST[0])).To(Equal(uint32(0x009a0000)))
 	// 	})
 
-	// 	It("should run V_XOR_B32", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP2
-	// 		state.inst.Opcode = 21
+	It("should run V_XOR_B32", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP2
+		inst.Opcode = 21
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		sp := state.Scratchpad().AsVOP2()
-	// 		sp.SRC0[0] = 2 // 10
-	// 		sp.SRC1[0] = 3 // 11
-	// 		sp.EXEC = 1
+		wf.inst = inst
+		wf.WriteReg(insts.VReg(0), 1, 0, 2) //10
+		wf.WriteReg(insts.VReg(1), 1, 0, 3) //11
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 1)
 
-	// 		alu.Run(state)
+		alu.Run(wf)
+		dst := wf.ReadReg(insts.VReg(2), 1, 0)
+		Expect(uint32(dst)).To(Equal(uint32(1)))
+	})
+	It("should run V_OR_B32 SDWA", func() {
+		inst := insts.NewInst()
+		inst.FormatType = insts.VOP2
+		inst.Opcode = 21
+		inst.IsSdwa = true
+		inst.Src0Sel = insts.SDWASelectByte0
+		inst.Src1Sel = insts.SDWASelectByte3
+		inst.DstSel = insts.SDWASelectWord1
+		inst.Src0 = insts.NewVRegOperand(0, 0, 1)
+		inst.Src1 = insts.NewVRegOperand(1, 1, 1)
+		inst.Dst = insts.NewVRegOperand(2, 2, 1)
 
-	// 		Expect(uint32(sp.DST[0])).To(Equal(uint32(1)))
-	// 	})
-	// 	It("should run V_OR_B32 SDWA", func() {
-	// 		state.inst = insts.NewInst()
-	// 		state.inst.FormatType = insts.VOP2
-	// 		state.inst.Opcode = 21
-	// 		state.inst.IsSdwa = true
-	// 		state.inst.Src0Sel = insts.SDWASelectByte0
-	// 		state.inst.Src1Sel = insts.SDWASelectByte3
-	// 		state.inst.DstSel = insts.SDWASelectWord1
+		wf.inst = inst
+		wf.WriteReg(insts.VReg(0), 1, 0, 0xfedcba98)
+		wf.WriteReg(insts.VReg(1), 1, 0, 0x12345678)
+		wf.WriteReg(insts.Regs[insts.EXEC], 1, 0, 1)
 
-	// 		sp := state.Scratchpad().AsVOP2()
-	// 		sp.SRC0[0] = 0xfedcba98
-	// 		sp.SRC1[0] = 0x12345678
-	// 		sp.EXEC = 1
+		alu.Run(wf)
 
-	// 		alu.Run(state)
-
-	// 		Expect(uint32(sp.DST[0])).To(Equal(uint32(0x008a0000)))
-	// 	})
+		dst := wf.ReadReg(insts.VReg(2), 1, 0)
+		Expect(uint32(dst)).To(Equal(uint32(0x008a0000)))
+	})
 
 	It("should run V_MAC_F32", func() {
 		inst := insts.NewInst()
