@@ -34,7 +34,7 @@ var _ = Describe("Scalar Unit", func() {
 		mockCtrl    *gomock.Controller
 		cu          *ComputeUnit
 		bu          *ScalarUnit
-		alu         emu.ALU
+		alu         *emu.ALUImpl
 		scalarMem   *MockPort
 		toScalarMem *MockPort
 	)
