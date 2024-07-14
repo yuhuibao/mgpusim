@@ -97,7 +97,8 @@ var _ = Describe("Scalar Unit", func() {
 	})
 
 	It("should accept wave", func() {
-		wave := new(wavefront.Wavefront)
+		// wave := new(wavefront.Wavefront)
+		wave := wavefront.NewWavefront(emu.NewWavefront(new(kernels.Wavefront)))
 		bu.AcceptWave(wave, 10)
 		Expect(bu.toRead).To(BeIdenticalTo(wave))
 	})
