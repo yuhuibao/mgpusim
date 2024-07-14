@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sarchlab/mgpusim/v3/emu"
 	"github.com/sarchlab/mgpusim/v3/insts"
+	"github.com/sarchlab/mgpusim/v3/kernels"
 	"github.com/sarchlab/mgpusim/v3/timing/wavefront"
 )
 
@@ -28,13 +29,40 @@ import (
 // 	sp.wfCommitted = wf
 // }
 
+type mockALU struct {
+	alu        emu.ALU
+	wfExecuted emu.InstEmuState
+}
+
+// ReadOperand implements emu.ALU.
+func (u *mockALU) ReadOperand(state emu.InstEmuState, operand *insts.Operand, laneID int, buf []uint32) uint64 {
+	return u.alu.ReadOperand(state, operand, laneID, buf)
+}
+
+// WriteOperand implements emu.ALU.
+func (u *mockALU) WriteOperand(state emu.InstEmuState, operand *insts.Operand, laneID int, data uint64, buf []uint32) {
+	u.alu.WriteOperand(state, operand, laneID, data, buf)
+}
+
+func (u *mockALU) SetLDS(lds []byte) {
+	u.alu.SetLDS(lds)
+}
+
+func (u *mockALU) LDS() []byte {
+	return u.alu.LDS()
+}
+
+func (alu *mockALU) Run(wf emu.InstEmuState) {
+	alu.wfExecuted = wf
+}
+
 var _ = Describe("Scalar Unit", func() {
 
 	var (
 		mockCtrl    *gomock.Controller
 		cu          *ComputeUnit
 		bu          *ScalarUnit
-		alu         *emu.ALUImpl
+		alu         *mockALU
 		scalarMem   *MockPort
 		toScalarMem *MockPort
 	)
@@ -42,7 +70,7 @@ var _ = Describe("Scalar Unit", func() {
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		cu = NewComputeUnit("CU", nil)
-		alu = emu.NewALU(nil)
+		alu = new(mockALU)
 		bu = NewScalarUnit(cu, alu)
 		bu.log2CachelineSize = 6
 
@@ -75,12 +103,12 @@ var _ = Describe("Scalar Unit", func() {
 	})
 
 	It("should run", func() {
-		wave1 := new(wavefront.Wavefront)
-		wave2 := new(wavefront.Wavefront)
+		wave1 := wavefront.NewWavefront(emu.NewWavefront(new(kernels.Wavefront)))
+		wave2 := wavefront.NewWavefront(emu.NewWavefront(new(kernels.Wavefront)))
 		inst := wavefront.NewInst(insts.NewInst())
 		inst.FormatType = insts.SOP2
 		wave2.SetDynamicInst(inst)
-		wave3 := new(wavefront.Wavefront)
+		wave3 := wavefront.NewWavefront(emu.NewWavefront(new(kernels.Wavefront)))
 		wave3.SetDynamicInst(inst)
 		wave3.State = wavefront.WfRunning
 
@@ -91,42 +119,41 @@ var _ = Describe("Scalar Unit", func() {
 		bu.Run(10)
 
 		Expect(wave3.State).To(Equal(wavefront.WfReady))
-		// Expect(bu.toWrite).To(BeIdenticalTo(wave2))
-		// Expect(bu.toExec).To(BeIdenticalTo(wave1))
-		// Expect(bu.toRead).To(BeNil())
+		Expect(bu.toWrite).To(BeIdenticalTo(wave2))
+		Expect(bu.toExec).To(BeIdenticalTo(wave1))
+		Expect(bu.toRead).To(BeNil())
 
 		// Expect(sp.wfPrepared).To(BeIdenticalTo(wave1))
-		// Expect(alu.wfExecuted).To(BeIdenticalTo(wave2))
-		// Expect(alu.Run()).To(BeIdenticalTo(wave2))
-		// Expect(alu.wfExecuted).To(BeIdenticalTo(wave2))
+		Expect(alu.wfExecuted).To(BeIdenticalTo(wave2))
 		// Expect(sp.wfCommitted).To(BeIdenticalTo(wave3))
 	})
 
-	// 	It("should run s_load_dword", func() {
-	// 		wave := wavefront.NewWavefront(nil)
-	// 		bu.toExec = wave
+	// It("should run s_load_dword", func() {
+	// 	// wave := wavefront.NewWavefront(nil)
+	// 	wave := wavefront.NewWavefront(emu.NewWavefront(new(kernels.Wavefront)))
+	// 	bu.toExec = wave
 
-	// 		inst := wavefront.NewInst(insts.NewInst())
-	// 		inst.FormatType = insts.SMEM
-	// 		inst.Opcode = 0
-	// 		inst.Data = insts.NewSRegOperand(0, 0, 1)
-	// 		wave.SetDynamicInst(inst)
+	// 	inst := wavefront.NewInst(insts.NewInst())
+	// 	inst.FormatType = insts.SMEM
+	// 	inst.Opcode = 0
+	// 	inst.Data = insts.NewSRegOperand(0, 0, 1)
+	// 	wave.SetDynamicInst(inst)
 
-	// 		sp := wave.Scratchpad().AsSMEM()
-	// 		sp.Base = 0x1000
-	// 		sp.Offset = 0x24
+	// 	// sp := wave.Scratchpad().AsSMEM()
+	// 	// sp.Base = 0x1000
+	// 	// sp.Offset = 0x24
 
-	// 		//expectedReq := mem.NewReadReq(10, cu, scalarMem, 0x1024, 4)
-	// 		//conn.ExpectSend(expectedReq, nil)
+	// 	//expectedReq := mem.NewReadReq(10, cu, scalarMem, 0x1024, 4)
+	// 	//conn.ExpectSend(expectedReq, nil)
 
-	// 		bu.Run(10)
+	// 	bu.Run(10)
 
-	// 		Expect(wave.State).To(Equal(wavefront.WfReady))
-	// 		Expect(wave.OutstandingScalarMemAccess).To(Equal(1))
-	// 		Expect(len(cu.InFlightScalarMemAccess)).To(Equal(1))
-	// 		//Expect(conn.AllExpectedSent()).To(BeTrue())
-	// 		Expect(bu.readBuf).To(HaveLen(1))
-	// 	})
+	// 	Expect(wave.State).To(Equal(wavefront.WfReady))
+	// 	// Expect(wave.OutstandingScalarMemAccess).To(Equal(1))
+	// 	// Expect(len(cu.InFlightScalarMemAccess)).To(Equal(1))
+	// 	// //Expect(conn.AllExpectedSent()).To(BeTrue())
+	// 	// Expect(bu.readBuf).To(HaveLen(1))
+	// })
 
 	// 	It("should run s_load_dwordx2", func() {
 	// 		wave := wavefront.NewWavefront(nil)
