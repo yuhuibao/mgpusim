@@ -30,26 +30,28 @@ import (
 // }
 
 type mockALU struct {
-	alu        emu.ALU
+	// alu        emu.ALU
 	wfExecuted emu.InstEmuState
 }
 
 // ReadOperand implements emu.ALU.
 func (u *mockALU) ReadOperand(state emu.InstEmuState, operand *insts.Operand, laneID int, buf []uint32) uint64 {
-	return u.alu.ReadOperand(state, operand, laneID, buf)
+	// return u.alu.ReadOperand(state, operand, laneID, buf)
+	return 0
 }
 
 // WriteOperand implements emu.ALU.
 func (u *mockALU) WriteOperand(state emu.InstEmuState, operand *insts.Operand, laneID int, data uint64, buf []uint32) {
-	u.alu.WriteOperand(state, operand, laneID, data, buf)
+	// u.alu.WriteOperand(state, operand, laneID, data, buf)
 }
 
-func (u *mockALU) SetLDS(lds []byte) {
-	u.alu.SetLDS(lds)
+func (alu *mockALU) SetLDS(lds []byte) {
+	// u.alu.SetLDS(lds)
 }
 
-func (u *mockALU) LDS() []byte {
-	return u.alu.LDS()
+func (alu *mockALU) LDS() []byte {
+	// return u.alu.LDS()
+	return nil
 }
 
 func (alu *mockALU) Run(wf emu.InstEmuState) {
@@ -129,32 +131,32 @@ var _ = Describe("Scalar Unit", func() {
 		// Expect(sp.wfCommitted).To(BeIdenticalTo(wave3))
 	})
 
-	// It("should run s_load_dword", func() {
-	// 	// wave := wavefront.NewWavefront(nil)
-	// 	wave := wavefront.NewWavefront(emu.NewWavefront(new(kernels.Wavefront)))
-	// 	bu.toExec = wave
+	It("should run s_load_dword", func() {
+		// wave := wavefront.NewWavefront(nil)
+		wave := wavefront.NewWavefront(emu.NewWavefront(new(kernels.Wavefront)))
+		bu.toExec = wave
 
-	// 	inst := wavefront.NewInst(insts.NewInst())
-	// 	inst.FormatType = insts.SMEM
-	// 	inst.Opcode = 0
-	// 	inst.Data = insts.NewSRegOperand(0, 0, 1)
-	// 	wave.SetDynamicInst(inst)
+		inst := wavefront.NewInst(insts.NewInst())
+		inst.FormatType = insts.SMEM
+		inst.Opcode = 0
+		inst.Data = insts.NewSRegOperand(0, 0, 1)
+		wave.SetDynamicInst(inst)
 
-	// 	// sp := wave.Scratchpad().AsSMEM()
-	// 	// sp.Base = 0x1000
-	// 	// sp.Offset = 0x24
+		// sp := wave.Scratchpad().AsSMEM()
+		// sp.Base = 0x1000
+		// sp.Offset = 0x24
 
-	// 	//expectedReq := mem.NewReadReq(10, cu, scalarMem, 0x1024, 4)
-	// 	//conn.ExpectSend(expectedReq, nil)
+		//expectedReq := mem.NewReadReq(10, cu, scalarMem, 0x1024, 4)
+		//conn.ExpectSend(expectedReq, nil)
 
-	// 	bu.Run(10)
+		bu.Run(10)
 
-	// 	Expect(wave.State).To(Equal(wavefront.WfReady))
-	// 	// Expect(wave.OutstandingScalarMemAccess).To(Equal(1))
-	// 	// Expect(len(cu.InFlightScalarMemAccess)).To(Equal(1))
-	// 	// //Expect(conn.AllExpectedSent()).To(BeTrue())
-	// 	// Expect(bu.readBuf).To(HaveLen(1))
-	// })
+		Expect(wave.State).To(Equal(wavefront.WfReady))
+		// Expect(wave.OutstandingScalarMemAccess).To(Equal(1))
+		// Expect(len(cu.InFlightScalarMemAccess)).To(Equal(1))
+		// //Expect(conn.AllExpectedSent()).To(BeTrue())
+		// Expect(bu.readBuf).To(HaveLen(1))
+	})
 
 	// 	It("should run s_load_dwordx2", func() {
 	// 		wave := wavefront.NewWavefront(nil)
