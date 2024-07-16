@@ -15,6 +15,7 @@ import (
 //go:generate mockgen -source subcomponent.go -destination mock_subcomponent_test.go -package $GOPACKAGE
 //go:generate mockgen -source wfdispatcher.go -destination mock_wfdispatcher_test.go -package $GOPACKAGE
 //go:generate mockgen -source coalescer.go -destination mock_coalsecer_test.go -package $GOPACKAGE
+//go:generate mockgen -source ../../emu/alu.go -destination mock_alu_test.go -package $GOPACKAGE
 
 func TestSimulator(t *testing.T) {
 	log.SetOutput(GinkgoWriter)

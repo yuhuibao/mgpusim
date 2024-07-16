@@ -29,42 +29,13 @@ import (
 // 	sp.wfCommitted = wf
 // }
 
-type mockALU struct {
-	// alu        emu.ALU
-	wfExecuted emu.InstEmuState
-}
-
-// ReadOperand implements emu.ALU.
-func (u *mockALU) ReadOperand(state emu.InstEmuState, operand *insts.Operand, laneID int, buf []uint32) uint64 {
-	// return u.alu.ReadOperand(state, operand, laneID, buf)
-	return 0
-}
-
-// WriteOperand implements emu.ALU.
-func (u *mockALU) WriteOperand(state emu.InstEmuState, operand *insts.Operand, laneID int, data uint64, buf []uint32) {
-	// u.alu.WriteOperand(state, operand, laneID, data, buf)
-}
-
-func (alu *mockALU) SetLDS(lds []byte) {
-	// u.alu.SetLDS(lds)
-}
-
-func (alu *mockALU) LDS() []byte {
-	// return u.alu.LDS()
-	return nil
-}
-
-func (alu *mockALU) Run(wf emu.InstEmuState) {
-	alu.wfExecuted = wf
-}
-
 var _ = Describe("Scalar Unit", func() {
 
 	var (
 		mockCtrl    *gomock.Controller
 		cu          *ComputeUnit
 		bu          *ScalarUnit
-		alu         *mockALU
+		alu         *MockALU
 		scalarMem   *MockPort
 		toScalarMem *MockPort
 	)
@@ -72,7 +43,7 @@ var _ = Describe("Scalar Unit", func() {
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		cu = NewComputeUnit("CU", nil)
-		alu = new(mockALU)
+		alu = NewMockALU(mockCtrl)
 		bu = NewScalarUnit(cu, alu)
 		bu.log2CachelineSize = 6
 
@@ -119,6 +90,8 @@ var _ = Describe("Scalar Unit", func() {
 		bu.toExec = wave2
 		bu.toWrite = wave3
 
+		alu.EXPECT().Run(wave2).Times(1)
+
 		bu.Run(10)
 
 		Expect(wave3.State).To(Equal(wavefront.WfReady))
@@ -127,7 +100,7 @@ var _ = Describe("Scalar Unit", func() {
 		Expect(bu.toRead).To(BeNil())
 
 		// Expect(sp.wfPrepared).To(BeIdenticalTo(wave1))
-		Expect(alu.wfExecuted).To(BeIdenticalTo(wave2))
+		// Expect(alu.wfExecuted).To(BeIdenticalTo(wave2))
 		// Expect(sp.wfCommitted).To(BeIdenticalTo(wave3))
 	})
 
@@ -141,6 +114,8 @@ var _ = Describe("Scalar Unit", func() {
 		inst.Opcode = 0
 		inst.Data = insts.NewSRegOperand(0, 0, 1)
 		wave.SetDynamicInst(inst)
+
+		// alu.EXPECT().ReadOperand(wave,).Return(0x1000)
 
 		// sp := wave.Scratchpad().AsSMEM()
 		// sp.Base = 0x1000
