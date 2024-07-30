@@ -42,13 +42,13 @@ var _ = Describe("Scalar Unit", func() {
 	})
 
 	It("should allow accepting wavefront", func() {
-		// wave := new(Wavefront)
 		bu.toRead = nil
 		Expect(bu.CanAcceptWave()).To(BeTrue())
 	})
 
 	It("should not allow accepting wavefront is the read stage buffer is occupied", func() {
-		bu.toRead = new(wavefront.Wavefront)
+		wave := wavefront.NewWavefront(emu.NewWavefront(new(kernels.Wavefront)))
+		bu.toRead = wave
 		Expect(bu.CanAcceptWave()).To(BeFalse())
 	})
 
