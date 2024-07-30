@@ -1,68 +1,62 @@
 package cu
 
-// import (
-// 	. "github.com/onsi/ginkgo/v2"
-// 	. "github.com/onsi/gomega"
-// 	"github.com/sarchlab/mgpusim/v3/insts"
-// 	"github.com/sarchlab/mgpusim/v3/kernels"
-// 	"github.com/sarchlab/mgpusim/v3/protocol"
-// 	"github.com/sarchlab/mgpusim/v3/timing/wavefront"
-// )
+import (
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	"github.com/sarchlab/mgpusim/v3/emu"
+	"github.com/sarchlab/mgpusim/v3/insts"
+	"github.com/sarchlab/mgpusim/v3/kernels"
+	"github.com/sarchlab/mgpusim/v3/protocol"
+	"github.com/sarchlab/mgpusim/v3/timing/wavefront"
+)
 
-// var _ = Describe("WfDispatcher", func() {
-// 	var (
-// 		cu           *ComputeUnit
-// 		wfDispatcher *WfDispatcherImpl
-// 	)
+var _ = Describe("WfDispatcher", func() {
+	var (
+		cu           *ComputeUnit
+		wfDispatcher *WfDispatcherImpl
+	)
 
-// 	BeforeEach(func() {
-// 		cu = NewComputeUnit("CU", nil)
-// 		cu.Freq = 1
+	BeforeEach(func() {
+		cu = NewComputeUnit("CU", nil)
+		cu.Freq = 1
 
-// 		sRegFile := NewSimpleRegisterFile(uint64(3200*4), 0)
-// 		cu.SRegFile = sRegFile
+		wfDispatcher = NewWfDispatcher(cu)
+	})
 
-// 		for i := 0; i < 4; i++ {
-// 			vRegFile := NewSimpleRegisterFile(uint64(16384*4), 1024)
-// 			cu.VRegFile = append(cu.VRegFile, vRegFile)
-// 		}
+	It("should dispatch wavefront", func() {
+		// rawWf := kernels.NewWavefront()
+		rawWf := new(kernels.Wavefront)
+		rawWG := kernels.NewWorkGroup()
+		rawWf.WG = rawWG
+		rawWG.SizeX = 256
+		rawWG.SizeY = 1
+		rawWG.SizeZ = 1
+		wfDispatchInfo := protocol.WfDispatchLocation{
+			Wavefront:  rawWf,
+			SIMDID:     1,
+			VGPROffset: 16,
+			SGPROffset: 8,
+			LDSOffset:  512,
+		}
 
-// 		wfDispatcher = NewWfDispatcher(cu)
-// 	})
+		co := insts.NewHsaCo()
+		co.KernelCodeEntryByteOffset = 256
+		packet := new(kernels.HsaKernelDispatchPacket)
+		packet.KernelObject = 65536
 
-// 	It("should dispatch wavefront", func() {
-// 		rawWf := kernels.NewWavefront()
-// 		rawWG := kernels.NewWorkGroup()
-// 		rawWf.WG = rawWG
-// 		rawWG.SizeX = 256
-// 		rawWG.SizeY = 1
-// 		rawWG.SizeZ = 1
-// 		wfDispatchInfo := protocol.WfDispatchLocation{
-// 			Wavefront:  rawWf,
-// 			SIMDID:     1,
-// 			VGPROffset: 16,
-// 			SGPROffset: 8,
-// 			LDSOffset:  512,
-// 		}
+		wf := wavefront.NewWavefront(emu.NewWavefront(rawWf))
+		wg := wavefront.NewWorkGroup(rawWG, nil)
+		wf.WG = wg
+		wf.CodeObject = co
+		wf.Packet = packet
+		//req := mgpusim.NewDispatchWfReq(nil, cu.ToACE, 10, nil)
+		wfDispatcher.DispatchWf(10, wf, wfDispatchInfo)
 
-// 		co := insts.NewHsaCo()
-// 		co.KernelCodeEntryByteOffset = 256
-// 		packet := new(kernels.HsaKernelDispatchPacket)
-// 		packet.KernelObject = 65536
-
-// 		wf := wavefront.NewWavefront(rawWf)
-// 		wg := wavefront.NewWorkGroup(rawWG, nil)
-// 		wf.WG = wg
-// 		wf.CodeObject = co
-// 		wf.Packet = packet
-// 		//req := mgpusim.NewDispatchWfReq(nil, cu.ToACE, 10, nil)
-// 		wfDispatcher.DispatchWf(10, wf, wfDispatchInfo)
-
-// 		//Expect(len(engine.ScheduledEvent)).To(Equal(1))
-// 		Expect(wf.SIMDID).To(Equal(1))
-// 		Expect(wf.VRegOffset).To(Equal(16))
-// 		Expect(wf.SRegOffset).To(Equal(8))
-// 		Expect(wf.LDSOffset).To(Equal(512))
-// 		Expect(wf.PC).To(Equal(uint64(65536 + 256)))
-// 	})
-// })
+		//Expect(len(engine.ScheduledEvent)).To(Equal(1))
+		Expect(wf.SIMDID).To(Equal(1))
+		Expect(wf.VRegOffset).To(Equal(16))
+		Expect(wf.SRegOffset).To(Equal(8))
+		Expect(wf.LDSOffset).To(Equal(512))
+		Expect(wf.PC).To(Equal(uint64(65536 + 256)))
+	})
+})
